@@ -4,15 +4,15 @@
 #include "wifi_lib.h"
 
 // Local variables
-char dataToSend[50];
-char dataToRecv[50];
+char dataToSend[MAX_SIZE_BUFFER];
+char dataToRecv[MAX_SIZE_BUFFER];
+int tmp = 0;
 
 // Extern variables
 extern int state;
 
 // Main
-int main(void)
-{
+int main(void){
 	// Initialisations
 	WiFi_Init();
 
@@ -34,24 +34,16 @@ int main(void)
 				Socket_Send(dataToSend);
 				break;
 			case(SOCKET_RECEIVE_REQUEST):
-				Socket_Receive(dataToRecv);
+				Socket_Receive(&dataToRecv);
+				break;
+			case(SOCKET_CLOSE_REQUEST):
+				Socket_Close();
 				break;
 			case(IDLE_STATE):
 				break;
+			default:
+				Socket_Close();
+
 		}
-
-
-
-		// if(flag_wifi==0){
-		// 	connect_WiFi();
-		// 	Socket_Init();
-		// }
-		// if(flag_send==1){
-		// 	Socket_Send("Hello World !");
-		// }
-
-
-
     }
-
 }

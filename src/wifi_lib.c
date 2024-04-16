@@ -7,8 +7,12 @@
 #include <zephyr/net/net_ip.h>
 #include <zephyr/net/net_if.h>
 #include <zephyr/drivers/gpio.h>
+#include <errno.h>
+#include <fcntl.h>
+#include <unistd.h>
 
 #include "wifi_lib.h"
+
 
 
 #define WIFI_SSID "iPhonedeLeo"
@@ -27,7 +31,7 @@
 				NET_EVENT_WIFI_DISCONNECT_RESULT)
 #define INVALID_SOCKET -1
 #define SOCKET_ERROR -1
-#define IP_ADDRESS "172.20.10.2"
+#define IP_ADDRESS "172.20.10.2" 
 #define PORT 80
 #define LED0_NODE DT_ALIAS(led0)
 
@@ -46,6 +50,10 @@ static struct k_sem wifi_connected;
 static struct wifi_connect_req_params wifi_args;
 static const struct gpio_dt_spec led = GPIO_DT_SPEC_GET(LED0_NODE, gpios);
 SOCKET sock;
+SOCKADDR_IN sin = { 0 }; /* initialise la structure avec des 0 */
+struct pollfd fds[1];
+static int nfds;
+
 
 void Wifi_check_connect_result( struct net_if *iface, struct net_mgmt_event_callback *cb)
 {
@@ -112,7 +120,16 @@ void connect_WiFi(void){
 
 void Socket_Init(void){
 	//Création du socket
-	sock = socket(AF_INET, SOCK_STREAM, 0);
+	sock = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+
+	int flags = fcntl(sock, F_GETFL, 0);
+	fcntl(sock, F_SETFL, flags & ~O_NONBLOCK);
+
+	// struct timeval tv;
+	// tv.tv_sec = 0;
+	// tv.tv_usec = 0;
+	// setsockopt(sock, SOL_SOCKET, SO_RCVTIMEO, (const char*)&tv, sizeof tv);
+
 	if(sock == INVALID_SOCKET)
 	{
 		printf("\r\nSocket creation error (socket())\r\n");
@@ -121,14 +138,9 @@ void Socket_Init(void){
 		printf("\r\nCreated socket : %d\r\n", sock);
 	}
 
-	
-	SOCKADDR_IN sin = { 0 }; /* initialise la structure avec des 0 */
-	// if(inet_pton(AF_INET,IP_ADDRESS,&sin.sin_addr)!=1){ // A vérfier avec net_addr_pton
-	// 	printf("\r\nIP Address issue\r\n");
-	// }
+
 	net_addr_pton(AF_INET,IP_ADDRESS,&sin.sin_addr);
-	//inet_pton(AF_INET,IP_ADDRESS,&sin.sin_addr);
-	//sin.sin_addr.s_addr = inet_addr(IP_ADDRESS) ; 
+
 	sin.sin_port = htons(PORT); /* on utilise htons pour le port */
 	sin.sin_family = AF_INET;
 	
@@ -139,12 +151,18 @@ void Socket_Init(void){
 	ret = connect(sock,(SOCKADDR *) &sin, sizeof(SOCKADDR));
 
 	while(ret!=0){
-		printf("\r\nSocket connection error : %d(connect())\r\n",ret);
-		printf("\r\nRetrying to connect\r\n",PORT,IP_ADDRESS);
+		printf("\r\nSocket connection error : %d (connect())\r\n",ret);
+		printf("\r\nRetrying to connect\r\n");
 		ret = connect(sock,(SOCKADDR *) &sin, sizeof(SOCKADDR));
-		k_sleep(K_MSEC(5000));
+		k_sleep(K_MSEC(3000));
 	}
 	printf("\r\nConnection succeeded at [%s] (connect())\r\n",IP_ADDRESS);
+
+
+	fds[nfds].fd = sock;
+	fds[nfds].events = POLLIN;
+	nfds++;
+
 	state = SOCKET_SEND_REQUEST;
 
 
@@ -159,23 +177,36 @@ void Socket_Send(char * data){
 	else{
 		printf("\r\nSend succeeded, message : '%s' (send())\r\n",data);
 		state = SOCKET_RECEIVE_REQUEST;
+		k_sleep(K_MSEC(2000));
 	}
 }
 
 void Socket_Receive(char* data){
-	// to do
-	int size = 0;
-	//while(recv(sock, data, strlen(data), 0)<=0);
-	if(recv(sock, data, strlen(data), 0)<0 )
-	{
-		printf("\r\nReceive error (recv())\r\n");
-		state = IDLE_STATE;
+	static int n = 0;
+	static int ret = 0;
+	static int error;
+
+	memset(data,'\0',MAX_SIZE_BUFFER);
+	//printf("debug1");
+	//poll(fds, nfds, -1);
+
+	n = recv(sock, &data, MAX_SIZE_BUFFER, 0);
+	if (n >= 0 ) {
+		state = SOCKET_CLOSE_REQUEST;
+		printf("\r\nReceived data (length : %d bytes): %s (recv())\r\n",n,&data);
 	}
 	else{
-		// printf("\r\nReceive succeeded, message : '%s' (recv())\r\n",data);
-		printf("%s",data);
-		state = IDLE_STATE;
+		Socket_Send("\r\nJe n'arrive pas à recevoir de données pourtant j'arrive à envoyer ce message :(\r\n");
+		error = errno;
+		fprintf(stderr,"\r\n!!! Receive error : %s (%d) !!!\r\n",strerror(errno),errno);
+		state = SOCKET_CLOSE_REQUEST;
 	}
+}
+
+void Socket_Close(){
+	close(sock);
+	printf("\r\nSocket closed\r\n");
+	state = IDLE_STATE;
 }
 
 

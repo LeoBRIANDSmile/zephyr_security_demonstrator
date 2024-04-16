@@ -7,6 +7,9 @@
 #define SOCKET_SEND_REQUEST 			2
 #define SOCKET_RECEIVE_REQUEST 			3
 #define IDLE_STATE                      4
+#define SOCKET_CLOSE_REQUEST            5
+
+#define MAX_SIZE_BUFFER              1024
 
 // Functions
 void WiFi_Init(void);
@@ -16,6 +19,7 @@ void Wifi_event_listener( struct net_mgmt_event_callback *, uint32_t , struct ne
 void Socket_Init(void);
 void Socket_Send(char*);
 void Socket_Receive(char*);
+void Socket_Close(void);
 void LED_Init(void);
 void LED_ON(void);
 void LED_OFF(void);
