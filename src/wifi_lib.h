@@ -2,14 +2,14 @@
 #define SRC_WIFI_LIB_H_
 
 // States
-#define WIFI_CONNECTION_REQUEST 		0
-#define WIFI_CONNECTED 					1
-#define SOCKET_SEND_REQUEST 			2
-#define SOCKET_RECEIVE_REQUEST 			3
+#define WIFI_CONNECTION_REQUEST         0
+#define WIFI_CONNECTED                  1
+#define SOCKET_SEND_REQUEST             2
+#define SOCKET_RECEIVE_REQUEST          3
 #define IDLE_STATE                      4
 #define SOCKET_CLOSE_REQUEST            5
 
-#define MAX_SIZE_BUFFER              1024
+#define MAX_SIZE_BUFFER                 1024
 
 // Functions
 void WiFi_Init(void);

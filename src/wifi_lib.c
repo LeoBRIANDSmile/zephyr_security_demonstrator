@@ -13,27 +13,22 @@
 
 #include "wifi_lib.h"
 
-
-
-#define WIFI_SSID "iPhonedeLeo"
-#define WIFI_PASS "leobriiand"
-
-// #define WIFI_SSID "Redmi"
-// #define WIFI_PASS "12345678"
-
-// #define WIFI_SSID "SmileWiFi"
-// #define WIFI_PASS "SmileWiFi"
-
-
+// Defines
 #define WIFI_MGMT_EVENTS (NET_EVENT_WIFI_SCAN_RESULT |		\
 				NET_EVENT_WIFI_SCAN_DONE |		\
 				NET_EVENT_WIFI_CONNECT_RESULT |		\
 				NET_EVENT_WIFI_DISCONNECT_RESULT)
 #define INVALID_SOCKET -1
 #define SOCKET_ERROR -1
-#define IP_ADDRESS "172.20.10.2" 
-#define PORT 80
 #define LED0_NODE DT_ALIAS(led0)
+
+// To define
+#define WIFI_SSID "YOURSSID"
+#define WIFI_PASS "YOURPWD"
+#define IP_ADDRESS "SERV_IP_ADDR" 
+#define PORT 80
+
+
 
 
 // Typedefs
@@ -43,8 +38,7 @@ typedef struct sockaddr SOCKADDR;
 typedef struct in_addr IN_ADDR;
 
 
-
-int state = WIFI_CONNECTION_REQUEST;
+// Variables
 static struct net_mgmt_event_callback* cb;
 static struct k_sem wifi_connected;
 static struct wifi_connect_req_params wifi_args;
@@ -54,13 +48,11 @@ SOCKADDR_IN sin = { 0 }; /* initialise la structure avec des 0 */
 struct pollfd fds[1];
 static int nfds;
 
-
+// Functions
 void Wifi_check_connect_result( struct net_if *iface, struct net_mgmt_event_callback *cb)
 {
 	const struct wifi_status *status = (const struct wifi_status *) cb->info;
 	if (!status->status) {
-		// Connected
-		//printf("\r\nConnected to "WIFI_SSID".\r\n");
 		LED_ON();
 		k_sem_give(&wifi_connected);
 	}
@@ -72,7 +64,6 @@ void Wifi_event_listener( struct net_mgmt_event_callback *cb, uint32_t mgmt_even
 			Wifi_check_connect_result( iface, cb );
 			break;
 		case NET_EVENT_WIFI_DISCONNECT_RESULT:
-			state = WIFI_CONNECTION_REQUEST;
 			printf("\r\nWiFi disconnected.\r\n");
 			LED_OFF();
 			break;
@@ -114,8 +105,6 @@ void connect_WiFi(void){
 	static char buf[NET_IPV4_ADDR_LEN];
 	net_addr_ntop( AF_INET, (const char *)&ipv4->unicast[0].ipv4.address.in_addr, buf, NET_IPV4_ADDR_LEN);
 	printk("\r\nSucessfully connected to "WIFI_SSID"\r\nAssigned IP address [%s] \r\n", buf);
-	state = WIFI_CONNECTED;
-	
 }
 
 void Socket_Init(void){
@@ -125,11 +114,6 @@ void Socket_Init(void){
 	int flags = fcntl(sock, F_GETFL, 0);
 	fcntl(sock, F_SETFL, flags & ~O_NONBLOCK);
 
-	// struct timeval tv;
-	// tv.tv_sec = 0;
-	// tv.tv_usec = 0;
-	// setsockopt(sock, SOL_SOCKET, SO_RCVTIMEO, (const char*)&tv, sizeof tv);
-
 	if(sock == INVALID_SOCKET)
 	{
 		printf("\r\nSocket creation error (socket())\r\n");
@@ -137,7 +121,6 @@ void Socket_Init(void){
 	else{
 		printf("\r\nCreated socket : %d\r\n", sock);
 	}
-
 
 	net_addr_pton(AF_INET,IP_ADDRESS,&sin.sin_addr);
 
@@ -157,16 +140,6 @@ void Socket_Init(void){
 		k_sleep(K_MSEC(3000));
 	}
 	printf("\r\nConnection succeeded at [%s] (connect())\r\n",IP_ADDRESS);
-
-
-	fds[nfds].fd = sock;
-	fds[nfds].events = POLLIN;
-	nfds++;
-
-	state = SOCKET_SEND_REQUEST;
-
-
-
 }
 
 void Socket_Send(char * data){
@@ -176,37 +149,27 @@ void Socket_Send(char * data){
 	}
 	else{
 		printf("\r\nSend succeeded, message : '%s' (send())\r\n",data);
-		state = SOCKET_RECEIVE_REQUEST;
 		k_sleep(K_MSEC(2000));
 	}
 }
 
 void Socket_Receive(char* data){
 	static int n = 0;
-	static int ret = 0;
-	static int error;
 
 	memset(data,'\0',MAX_SIZE_BUFFER);
-	//printf("debug1");
-	//poll(fds, nfds, -1);
 
 	n = recv(sock, &data, MAX_SIZE_BUFFER, 0);
 	if (n >= 0 ) {
-		state = SOCKET_CLOSE_REQUEST;
 		printf("\r\nReceived data (length : %d bytes): %s (recv())\r\n",n,&data);
 	}
 	else{
-		Socket_Send("\r\nJe n'arrive pas à recevoir de données pourtant j'arrive à envoyer ce message :(\r\n");
-		error = errno;
 		fprintf(stderr,"\r\n!!! Receive error : %s (%d) !!!\r\n",strerror(errno),errno);
-		state = SOCKET_CLOSE_REQUEST;
 	}
 }
 
 void Socket_Close(){
 	close(sock);
 	printf("\r\nSocket closed\r\n");
-	state = IDLE_STATE;
 }
 
 

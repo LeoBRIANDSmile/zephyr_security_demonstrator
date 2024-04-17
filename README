@@ -1,0 +1,1 @@
+SSID, PWD and PORT should be defined before flashing (wifi_lib.c)
