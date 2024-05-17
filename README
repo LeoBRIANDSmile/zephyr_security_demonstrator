@@ -1,1 +1,10 @@
-SSID, PWD and PORT should be defined before flashing (wifi_lib.c)
+# Source code config
+SSID, PWD and IP_ADDRESS should be defined before flashing (wifi_lib.c)
+
+# Building config
+Use "$ west build -p always -b disco_l475_iot1" to build the project with non-secure communication
+
+
+
+
+
