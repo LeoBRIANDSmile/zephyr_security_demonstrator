@@ -3,12 +3,20 @@
 #include <zephyr/device.h>
 #include <string.h>
 #include "wifi.h"
+#include "common.h"
+
+#define MAX_SIZE_BUFFER_RECEIVE 10000
 
 // States
 #define WIFI_CONNECTION_REQUEST			0
+#define SOCKET_CREATION_STATE			1
+#define SEND_STATE						2
+#define RECEIVE_STATE					3
 #define IDLE_STATE						-1
 
 // Local variables
+char dataToSend[100];
+char dataToRecv[MAX_SIZE_BUFFER_RECEIVE];
 
 // Extern variables
 int state = WIFI_CONNECTION_REQUEST;
@@ -17,16 +25,27 @@ int state = WIFI_CONNECTION_REQUEST;
 int main(void){
 	// Initialisations
 	WiFi_Init();
+	strcpy(dataToSend,"Received");
 
 	while (1) {
 		// Machine d'état
 		switch(state){
 			case(WIFI_CONNECTION_REQUEST):
 				connect_WiFi();
-				state = IDLE_STATE;
+				state = SOCKET_CREATION_STATE;
 				break;
+			case(SOCKET_CREATION_STATE):
+				Socket_Init();
+				state = RECEIVE_STATE;
+				break;
+			case(SEND_STATE):
+				Socket_Send(dataToSend);
+				state = RECEIVE_STATE;
+			case(RECEIVE_STATE):
+				Socket_Receive(dataToRecv);
+				state = SEND_STATE;
 			case(IDLE_STATE):
-				printf("\r-----------------Idle State-----------------");
+				// printf("\r-----------------Idle State-----------------");
 				break;
 		}
 	}

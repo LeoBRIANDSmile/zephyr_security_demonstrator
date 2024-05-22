@@ -16,8 +16,8 @@
 				NET_EVENT_WIFI_DISCONNECT_RESULT)
 
 // To define
-#define WIFI_SSID "<YOURSSID>"
-#define WIFI_PASS "<YOURPSWD>"
+#define WIFI_SSID "SSID"
+#define WIFI_PASS "PSWD"
 
 // Typedefs
 
@@ -84,4 +84,6 @@ void connect_WiFi(void){
 	net_addr_ntop( AF_INET, (const char *)&ipv4->unicast[0].ipv4.address.in_addr, buf, NET_IPV4_ADDR_LEN);
 	printk("\r\nSucessfully connected to "WIFI_SSID"\r\nAssigned IP address [%s] \r\n", buf);
 }
+
+
 

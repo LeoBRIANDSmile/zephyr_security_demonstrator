@@ -1,0 +1,1 @@
+#define MAX_SIZE_BUFFER 1024
