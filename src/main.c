@@ -2,8 +2,8 @@
 #include <zephyr/kernel.h>
 #include <zephyr/device.h>
 #include <string.h>
-#include "wifi.h"
 #include "common.h"
+
 
 #define MAX_SIZE_BUFFER_RECEIVE 10000
 
@@ -27,6 +27,7 @@ int main(void){
 	WiFi_Init();
 	strcpy(dataToSend,"Received");
 
+
 	while (1) {
 		// Machine d'état
 		switch(state){
@@ -36,16 +37,15 @@ int main(void){
 				break;
 			case(SOCKET_CREATION_STATE):
 				Socket_Init();
-				state = RECEIVE_STATE;
+				state = SEND_STATE;
 				break;
 			case(SEND_STATE):
 				Socket_Send(dataToSend);
 				state = RECEIVE_STATE;
 			case(RECEIVE_STATE):
 				Socket_Receive(dataToRecv);
-				state = SEND_STATE;
+				state = IDLE_STATE;
 			case(IDLE_STATE):
-				// printf("\r-----------------Idle State-----------------");
 				break;
 		}
 	}

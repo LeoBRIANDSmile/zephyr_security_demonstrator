@@ -4,10 +4,11 @@
 #include <zephyr/net/socket.h>
 #include <zephyr/net/wifi_mgmt.h>
 #include <zephyr/net/net_event.h>
+#include <zephyr/net/net_mgmt.h>
 #include <zephyr/net/net_ip.h>
 #include <zephyr/net/net_if.h>
 #include "wifi.h"
-#include "led.h"
+#include "common.h"
 
 // Defines
 #define WIFI_MGMT_EVENTS (NET_EVENT_WIFI_SCAN_RESULT |		\
@@ -16,18 +17,17 @@
 				NET_EVENT_WIFI_DISCONNECT_RESULT)
 
 // To define
-#define WIFI_SSID "SSID"
-#define WIFI_PASS "PSWD"
+#define WIFI_SSID "<SSID>"
+#define WIFI_PASS "<PWD>"
 
 // Typedefs
 
 // Variables
-static struct net_mgmt_event_callback* cb;
 static struct k_sem wifi_connected;
 static struct wifi_connect_req_params wifi_args;
 
 // Functions
-void Wifi_check_connect_result( struct net_if *iface, struct net_mgmt_event_callback *cb)
+void Wifi_check_connect_result( struct net_if *iface, struct net_mgmt_event_callback* cb)
 {
 	const struct wifi_status *status = (const struct wifi_status *) cb->info;
 	if (!status->status) {
@@ -72,7 +72,13 @@ void connect_WiFi(void){
 	printf("\r\nConnecting to WiFi...\r\n");
     // Requête de connexion au réseau
 	struct net_if *iface = net_if_get_default();
-	
+
+	// Affichage du nom de l'interface réseau
+	char iface_name[20];
+	net_if_get_name(iface,iface_name,20);
+	printf("Interface name : %s",iface_name);
+
+
 	if( net_mgmt( NET_REQUEST_WIFI_CONNECT, iface, &wifi_args, sizeof(wifi_args) ) ) {
 		perror("Failed to request connection to "WIFI_SSID);
 	}

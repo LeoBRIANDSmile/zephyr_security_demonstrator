@@ -3,10 +3,14 @@
 #include <fcntl.h>
 #include <unistd.h>
 #include "common.h"
+#include "ca_certificate.h"
+#include <zephyr/net/tls_credentials.h>
+// #include <mbedtls/ssl_ciphersuites.h>
+// #include <mbedtls/ssl.h>
 
 
-#define IP_ADDRESS "172.20.10.2" 
-#define PORT 1234
+#define IP_ADDRESS "<IPADDRESS>" 
+#define PORT 443
 
 #define INVALID_SOCKET -1
 #define SOCKET_ERROR -1
@@ -18,12 +22,26 @@ typedef struct sockaddr SOCKADDR;
 typedef struct in_addr IN_ADDR;
 
 SOCKET sock;
-SOCKADDR_IN sin = { 0 };
+SOCKADDR_IN mysin = { 0 };
 
 void Socket_Init(void){
-	
-	int ret;
-    sock = socket(AF_INET, SOCK_DGRAM, 0);
+
+	int ret = -1;
+	int tls_native = 1;
+
+	#if defined(CONFIG_NET_SOCKETS_SOCKOPT_TLS)
+		ret = tls_credential_add(CA_CERTIFICATE_TAG, TLS_CREDENTIAL_CA_CERTIFICATE, ca_certificate, sizeof(ca_certificate));
+		if (ret < 0) {
+			printf("\r\nFailed to register public certificate: %d\r\n", ret);
+		}
+	#endif
+
+	// Socket Creation
+	#if defined(CONFIG_NET_SOCKETS_SOCKOPT_TLS)
+	    sock = zsock_socket(AF_INET, SOCK_STREAM, IPPROTO_TLS_1_2);
+	#else
+	    sock = zsock_socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+	#endif
 	
 	if(sock == INVALID_SOCKET)
 	{
@@ -33,21 +51,51 @@ void Socket_Init(void){
 		printf("\r\nCreated socket : %d\r\n", sock);
 	}
 
-	net_addr_pton(AF_INET,IP_ADDRESS,&sin.sin_addr);
-	sin.sin_port = htons(PORT); /* on utilise htons pour le port */
-	sin.sin_family = AF_INET;
-    ret = connect(sock,(SOCKADDR *) &sin, sizeof(SOCKADDR));
+	// Socket Configuration
+	net_addr_pton(AF_INET,IP_ADDRESS,&mysin.sin_addr);
+	mysin.sin_port = htons(PORT);
+	mysin.sin_family = AF_INET;
+
+	#if defined(CONFIG_NET_SOCKETS_SOCKOPT_TLS)
+
+		// Remove offloading of TLS stack
+		struct ifreq ifreq = {
+			.ifr_name = "wlan0"
+		};
+
+		ret = zsock_setsockopt(sock, SOL_TLS, TLS_NATIVE, &tls_native, sizeof(tls_native));
+		if(ret < 0){
+			printf("\r\nFailed to set TLS option\r\n");
+		}
+		
+		ret = zsock_setsockopt(sock, SOL_SOCKET, SO_BINDTODEVICE, &ifreq, sizeof(ifreq));
+		if(ret < 0){
+			printf("\r\nFailed to bind socket to device, setsockopt returns : %d\r\n", ret);
+			printf("\r\nErrno : %s\r\n",strerror(errno));
+		}
+		
+		sec_tag_t sec_tag_list[] = { CA_CERTIFICATE_TAG };
+
+		ret = zsock_setsockopt(sock, SOL_TLS, TLS_SEC_TAG_LIST,sec_tag_list, sizeof(sec_tag_list));
+		if (ret < 0) {
+			printf("Failed to set TLS_SEC_TAG_LIST (rc %d, errno %d)", ret, errno);
+		}
+
+	#endif
+
+	// Socket Connection
+    ret = zsock_connect(sock,(SOCKADDR *) &mysin, sizeof(SOCKADDR));
 	if (ret < 0) {
-		printf("Cannot connect to UDP remote");
+		printf("\r\nCannot connect\r\n");
 		ret = -errno;
 	}
 }
 
 void Socket_Send(char * data){
-    if(send(sock, data, strlen(data), 0) < 0)
+    if(zsock_send(sock, data, strlen(data), 0) < 0)
 	{
 		printf("\r\nSend error (send())\r\n");
-        printf("%s",strerror(errno));
+        printf("\r\n%s\r\n",strerror(errno));
 	}
 	else{
 		printf("\r\nSend succeeded, message : '%s' (send())\r\n",data);
@@ -58,6 +106,6 @@ void Socket_Send(char * data){
 void Socket_Receive(char* data){
 	static int n = 0;
 	memset(data,'\0',MAX_SIZE_BUFFER);
-    n = recv(sock, data, MAX_SIZE_BUFFER ,0);
+    n = zsock_recv(sock, data, MAX_SIZE_BUFFER ,0);
 	printf("\r\nReceived data (length : %d bytes):\r\n%s\r\n",n,data);
 }
