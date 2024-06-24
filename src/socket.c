@@ -84,7 +84,7 @@ void Socket_Init(void){
 	#endif
 
 	// Socket Connection
-    ret = zsock_connect(sock,(SOCKADDR *) &mysin, sizeof(SOCKADDR));
+	ret = zsock_connect(sock,(SOCKADDR *) &mysin, sizeof(SOCKADDR));
 	if (ret < 0) {
 		printf("\r\nCannot connect\r\n");
 		ret = -errno;
@@ -95,7 +95,7 @@ void Socket_Send(char * data){
     if(zsock_send(sock, data, strlen(data), 0) < 0)
 	{
 		printf("\r\nSend error (send())\r\n");
-        printf("\r\n%s\r\n",strerror(errno));
+		printf("\r\n%s\r\n",strerror(errno));
 	}
 	else{
 		printf("\r\nSend succeeded, message : '%s' (send())\r\n",data);
@@ -106,6 +106,6 @@ void Socket_Send(char * data){
 void Socket_Receive(char* data){
 	static int n = 0;
 	memset(data,'\0',MAX_SIZE_BUFFER);
-    n = zsock_recv(sock, data, MAX_SIZE_BUFFER ,0);
+	n = zsock_recv(sock, data, MAX_SIZE_BUFFER ,0);
 	printf("\r\nReceived data (length : %d bytes):\r\n%s\r\n",n,data);
 }

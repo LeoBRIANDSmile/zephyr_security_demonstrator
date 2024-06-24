@@ -8,11 +8,11 @@
 #define MAX_SIZE_BUFFER_RECEIVE 10000
 
 // States
-#define WIFI_CONNECTION_REQUEST			0
-#define SOCKET_CREATION_STATE			1
-#define SEND_STATE						2
-#define RECEIVE_STATE					3
-#define IDLE_STATE						-1
+#define WIFI_CONNECTION_REQUEST         0
+#define SOCKET_CREATION_STATE           1
+#define SEND_STATE                      2
+#define RECEIVE_STATE                   3
+#define IDLE_STATE                      -1
 
 // Local variables
 char dataToSend[100];

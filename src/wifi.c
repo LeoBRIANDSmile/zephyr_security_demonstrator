@@ -70,7 +70,7 @@ void WiFi_Init(void){
 
 void connect_WiFi(void){
 	printf("\r\nConnecting to WiFi...\r\n");
-    // Requête de connexion au réseau
+	// Requête de connexion au réseau
 	struct net_if *iface = net_if_get_default();
 
 	// Affichage du nom de l'interface réseau
@@ -82,7 +82,7 @@ void connect_WiFi(void){
 	if( net_mgmt( NET_REQUEST_WIFI_CONNECT, iface, &wifi_args, sizeof(wifi_args) ) ) {
 		perror("Failed to request connection to "WIFI_SSID);
 	}
-    k_sem_take(&wifi_connected, K_FOREVER);
+	k_sem_take(&wifi_connected, K_FOREVER);
 
 	// Affichage de l'adresse IP de l'appareil sur le réseau
 	struct net_if_ipv4 *ipv4 = iface->config.ip.ipv4;
