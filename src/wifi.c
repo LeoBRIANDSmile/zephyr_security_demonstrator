@@ -18,7 +18,7 @@
 
 // To define
 #define WIFI_SSID "<SSID>"
-#define WIFI_PASS "<PWD>"
+#define WIFI_PASS "<PSWD>"
 
 // Typedefs
 
@@ -76,7 +76,7 @@ void connect_WiFi(void){
 	// Affichage du nom de l'interface réseau
 	char iface_name[20];
 	net_if_get_name(iface,iface_name,20);
-	printf("Interface name : %s",iface_name);
+	printf("\r\nInterface name : %s\r\n",iface_name);
 
 
 	if( net_mgmt( NET_REQUEST_WIFI_CONNECT, iface, &wifi_args, sizeof(wifi_args) ) ) {

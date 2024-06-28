@@ -9,7 +9,7 @@
 // #include <mbedtls/ssl.h>
 
 
-#define IP_ADDRESS "<IPADDRESS>" 
+#define IP_ADDRESS "<IP_ADDRESS>" 
 #define PORT 443
 
 #define INVALID_SOCKET -1
@@ -27,8 +27,8 @@ SOCKADDR_IN mysin = { 0 };
 void Socket_Init(void){
 
 	int ret = -1;
-	int tls_native = 1;
 
+	// Add credentials
 	#if defined(CONFIG_NET_SOCKETS_SOCKOPT_TLS)
 		ret = tls_credential_add(CA_CERTIFICATE_TAG, TLS_CREDENTIAL_CA_CERTIFICATE, ca_certificate, sizeof(ca_certificate));
 		if (ret < 0) {
@@ -63,6 +63,7 @@ void Socket_Init(void){
 			.ifr_name = "wlan0"
 		};
 
+		int tls_native = 1;
 		ret = zsock_setsockopt(sock, SOL_TLS, TLS_NATIVE, &tls_native, sizeof(tls_native));
 		if(ret < 0){
 			printf("\r\nFailed to set TLS option\r\n");
@@ -73,7 +74,15 @@ void Socket_Init(void){
 			printf("\r\nFailed to bind socket to device, setsockopt returns : %d\r\n", ret);
 			printf("\r\nErrno : %s\r\n",strerror(errno));
 		}
+
+		// Set peer verification to : 0 (none), 1 (optionnal), 2 (required)
+		int peer_verify = 0;
+		ret = zsock_setsockopt(sock, SOL_TLS, TLS_PEER_VERIFY, &peer_verify, sizeof(peer_verify));
+		if (ret < 0) {
+			printf("Failed to set TLS_PEER_VERIFY (rc %d, errno %d)", ret, errno);
+		}
 		
+		// Add tag(s) that could be certificate, private key, pre-shared key... (Cf Add credentials)
 		sec_tag_t sec_tag_list[] = { CA_CERTIFICATE_TAG };
 
 		ret = zsock_setsockopt(sock, SOL_TLS, TLS_SEC_TAG_LIST,sec_tag_list, sizeof(sec_tag_list));
@@ -86,9 +95,10 @@ void Socket_Init(void){
 	// Socket Connection
 	ret = zsock_connect(sock,(SOCKADDR *) &mysin, sizeof(SOCKADDR));
 	if (ret < 0) {
-		printf("\r\nCannot connect\r\n");
+		printf("\r\nCannot connect, errno : %s\r\n", strerror(errno));
 		ret = -errno;
 	}
+	else printf("\r\nConnection success\r\n");
 }
 
 void Socket_Send(char * data){
