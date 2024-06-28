@@ -2,8 +2,7 @@
 #define __CA_CERTIFICATE_H__
 
 #define CA_CERTIFICATE_TAG 1
-#define TLS_PEER_HOSTNAME "172.20.10.2"
-
+#define TLS_PEER_HOSTNAME "tintin"
 
 static const unsigned char ca_certificate[] = {
 #include "CA.der.inc"

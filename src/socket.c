@@ -76,7 +76,7 @@ void Socket_Init(void){
 		}
 
 		// Set peer verification to : 0 (none), 1 (optionnal), 2 (required)
-		int peer_verify = 0;
+		int peer_verify = 2;
 		ret = zsock_setsockopt(sock, SOL_TLS, TLS_PEER_VERIFY, &peer_verify, sizeof(peer_verify));
 		if (ret < 0) {
 			printf("Failed to set TLS_PEER_VERIFY (rc %d, errno %d)", ret, errno);
@@ -90,13 +90,18 @@ void Socket_Init(void){
 			printf("Failed to set TLS_SEC_TAG_LIST (rc %d, errno %d)", ret, errno);
 		}
 
+		ret = zsock_setsockopt(sock, SOL_TLS, TLS_HOSTNAME, TLS_PEER_HOSTNAME, sizeof(TLS_PEER_HOSTNAME));
+		if (ret < 0) {
+			printf("Failed to set TLS_HOSTNAME option (rc %d, errno %d)", ret, errno);
+		}
+
 	#endif
 
 	// Socket Connection
 	ret = zsock_connect(sock,(SOCKADDR *) &mysin, sizeof(SOCKADDR));
 	if (ret < 0) {
 		printf("\r\nCannot connect, errno : %s\r\n", strerror(errno));
-		ret = -errno;
+		return;		
 	}
 	else printf("\r\nConnection success\r\n");
 }
