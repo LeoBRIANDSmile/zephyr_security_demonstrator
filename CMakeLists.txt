@@ -11,6 +11,6 @@ set(gen_dir ${ZEPHYR_BINARY_DIR}/include/generated/)
 
 generate_inc_file_for_target(
     app
-    src/CA.der
+    certs/CA.der
     ${gen_dir}/CA.der.inc
 )

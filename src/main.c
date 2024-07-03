@@ -25,7 +25,7 @@ int state = WIFI_CONNECTION_REQUEST;
 int main(void){
 	// Initialisations
 	WiFi_Init();
-	strcpy(dataToSend,"Received");
+	strcpy(dataToSend,"Succesfully connected");
 
 
 	while (1) {
