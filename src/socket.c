@@ -6,8 +6,7 @@
 #include "ca_certificate.h"
 #include <zephyr/net/tls_credentials.h>
 
-#define IP_ADDRESS "<IP_ADDRESS>" 
-#define PORT 443
+#define IP_ADDRESS "<IP_ADDRESS>"
 
 #define INVALID_SOCKET -1
 #define SOCKET_ERROR -1
@@ -50,7 +49,7 @@ void Socket_Init(void){
 
 	// Socket Configuration
 	net_addr_pton(AF_INET,IP_ADDRESS,&mysin.sin_addr);
-	mysin.sin_port = htons(PORT);
+	mysin.sin_port = htons(HTTP_PORT);
 	mysin.sin_family = AF_INET;
 
 	#if defined(CONFIG_NET_SOCKETS_SOCKOPT_TLS)
@@ -95,12 +94,11 @@ void Socket_Init(void){
 	#endif
 
 	// Socket Connection
-	ret = zsock_connect(sock,(SOCKADDR *) &mysin, sizeof(SOCKADDR));
-	if (ret < 0) {
-		printf("\r\nCannot connect, errno : %s\r\n", strerror(errno));
-		return;		
+	while(zsock_connect(sock,(SOCKADDR *) &mysin, sizeof(SOCKADDR))<0){
+		printf("\r\nRetrying to connect...\r\n");
+	    k_sleep(K_MSEC(1000));
 	}
-	else printf("\r\nConnection success\r\n");
+	printf("\r\nConnection success\r\n");
 }
 
 void Socket_Send(char * data){
@@ -115,9 +113,24 @@ void Socket_Send(char * data){
 	}
 }
 
-void Socket_Receive(char* data){
-	static int n = 0;
-	memset(data,'\0',MAX_SIZE_BUFFER);
-	n = zsock_recv(sock, data, MAX_SIZE_BUFFER ,0);
-	printf("\r\nReceived data (length : %d bytes):\r\n%s\r\n",n,data);
+int Socket_Receive(char* data){
+	static int n = 0,total=0;
+	// memset(data,'\0',MAX_SIZE_BUFFER);
+	while (1) {
+		int n = zsock_recv(sock, data, MAX_SIZE_BUFFER - 1, 0);
+		total+=n;
+		if (n < 0) {
+			printf("Error reading response\n");
+			return 0;
+		}
+		if (n == 0) {
+			break;
+		}
+		data[n] = 0;
+		printf("%s", data);
+		//Remplacer printf par écriture en flash
+	}
+	printf("\r\nTotal bytes received : %d\r\n",total);
+
+
 }

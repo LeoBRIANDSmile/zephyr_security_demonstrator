@@ -5,7 +5,7 @@
 #include "common.h"
 
 
-#define MAX_SIZE_BUFFER_RECEIVE 10000
+#define MAX_SIZE_BUFFER_RECEIVE 1024
 
 // States
 #define WIFI_CONNECTION_REQUEST         0
@@ -16,7 +16,7 @@
 
 // Local variables
 char dataToSend[100];
-char dataToRecv[MAX_SIZE_BUFFER_RECEIVE];
+char dataToRecv[MAX_SIZE_BUFFER];
 
 // Extern variables
 int state = WIFI_CONNECTION_REQUEST;
@@ -40,7 +40,7 @@ int main(void){
 				state = SEND_STATE;
 				break;
 			case(SEND_STATE):
-				Socket_Send(dataToSend);
+				Socket_Send(REQUEST);
 				state = RECEIVE_STATE;
 			case(RECEIVE_STATE):
 				Socket_Receive(dataToRecv);
