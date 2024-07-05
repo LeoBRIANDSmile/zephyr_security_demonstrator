@@ -22,7 +22,7 @@ SOCKADDR_IN mysin = { 0 };
 
 void Socket_Init(void){
 
-	int ret = -1;
+	int ret = -1, count = 0;
 
 	// Add credentials
 	#if defined(CONFIG_NET_SOCKETS_SOCKOPT_TLS)
@@ -95,8 +95,13 @@ void Socket_Init(void){
 
 	// Socket Connection
 	while(zsock_connect(sock,(SOCKADDR *) &mysin, sizeof(SOCKADDR))<0){
+		count++;
 		printf("\r\nRetrying to connect...\r\n");
 	    k_sleep(K_MSEC(1000));
+		if(count>=15){
+			printf("\r\nCannot connect\r\n");
+			return;
+		}
 	}
 	printf("\r\nConnection success\r\n");
 }
