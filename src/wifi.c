@@ -19,10 +19,6 @@ LOG_MODULE_REGISTER(wifi, LOG_LEVEL_DBG);
 								NET_EVENT_WIFI_CONNECT_RESULT |		\
 								NET_EVENT_WIFI_DISCONNECT_RESULT)
 
-// To define
-#define WIFI_SSID "<SSID>"
-#define WIFI_PASS "<PSWD>"
-
 // Variables
 static struct k_sem wifi_connected;
 static struct wifi_connect_req_params wifi_args;
@@ -61,14 +57,15 @@ void WiFi_Init(void){
 	// Configuration des paramètres Wi-Fi
 	wifi_args.security = WIFI_SECURITY_TYPE_PSK;
 	wifi_args.channel = WIFI_CHANNEL_ANY;
-	wifi_args.psk = WIFI_PASS;
-	wifi_args.psk_length = strlen(WIFI_PASS);
-	wifi_args.ssid = WIFI_SSID;
-	wifi_args.ssid_length = strlen(WIFI_SSID);
 	LOG_INF("WiFi initialisation done.");
 }
 
-int connect_WiFi(void){
+int connect_WiFi(char* SSID, char* PSWD){
+	wifi_args.ssid = SSID;
+	wifi_args.psk = PSWD;
+	wifi_args.ssid_length = strlen(SSID);
+	wifi_args.psk_length = strlen(PSWD);
+
 	LOG_INF("Connecting to WiFi...");
 	// Requête de connexion au réseau
 	struct net_if *iface = net_if_get_default();
@@ -80,7 +77,7 @@ int connect_WiFi(void){
 
 
 	if( net_mgmt( NET_REQUEST_WIFI_CONNECT, iface, &wifi_args, sizeof(wifi_args) ) ) {
-		perror("Failed to request connection to "WIFI_SSID);
+		LOG_ERR("Failed to request connection to %s",SSID);
 		return 0;
 	}
 	k_sem_take(&wifi_connected, K_FOREVER);
@@ -89,7 +86,7 @@ int connect_WiFi(void){
 	struct net_if_ipv4 *ipv4 = iface->config.ip.ipv4;
 	static char buf[NET_IPV4_ADDR_LEN];
 	net_addr_ntop( AF_INET, (const char *)&ipv4->unicast[0].ipv4.address.in_addr, buf, NET_IPV4_ADDR_LEN);
-	LOG_INF("Sucessfully connected to "WIFI_SSID"");
+	LOG_INF("Sucessfully connected to %s",SSID);
 	LOG_INF("Assigned IP address [%s]", buf);
 	return 1;
 }

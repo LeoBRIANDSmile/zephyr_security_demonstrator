@@ -8,38 +8,44 @@
 #include "common.h"
 
 static int wifi_connect(const struct shell *sh,
-                            size_t argc, char **argv, void *data)
+                            size_t argc, char **argv)
 {   
         static int ret = 0;
-        ret = connect_WiFi();
-        if(!ret){
-            shell_print(sh, "Error when trying to connect");
+        if(argc==3){
+            ret = connect_WiFi(argv[1],argv[2]);
+            if(!ret){
+                shell_print(sh, "Error when trying to connect");
+            }
+            else    shell_print(sh, "Successfully connected");
         }
-        else    shell_print(sh, "Successfully connected");
+        
 
 
         return 0;
 }
 
 static int http_request(const struct shell *sh,
-                            size_t argc, char **argv, void *data)
+                            size_t argc, char **argv)
 {
     static int ret = 0;
     ret = Socket_Init();
     if(!ret){
         shell_print(sh, "Error during socket connection");
+        Socket_Close();
         return 0;
     }
 
     ret = Socket_Send(REQUEST);
     if(!ret){
         shell_print(sh, "Error while sending request");
+        Socket_Close();
         return 0;
     }
 
     ret = Socket_Receive(dataToRecv);
     if(!ret){
         shell_print(sh, "Error while receiving data");
+        Socket_Close();
         return 0;
     }
 
@@ -57,7 +63,7 @@ SHELL_STATIC_SUBCMD_SET_CREATE(led_perso,
 SHELL_CMD_REGISTER(led, &led_perso, "Wifi shell commands", NULL);
 
 SHELL_STATIC_SUBCMD_SET_CREATE(device_perso,
-        SHELL_CMD_ARG(connect, NULL, "Connect Wi-Fi", wifi_connect,1,0),
+        SHELL_CMD_ARG(connect, NULL, "Connect Wi-Fi", wifi_connect,1,2),
         SHELL_SUBCMD_SET_END
 );
 

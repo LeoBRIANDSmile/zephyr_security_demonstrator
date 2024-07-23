@@ -9,7 +9,7 @@
 
 LOG_MODULE_REGISTER(socket, LOG_LEVEL_DBG);
 
-#define IP_ADDRESS "<IP_ADDRESS>"
+#define IP_ADDRESS "172.20.10.3"
 
 #define INVALID_SOCKET -1
 #define SOCKET_ERROR -1

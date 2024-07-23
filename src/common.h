@@ -13,7 +13,7 @@ int Socket_Send(char *);
 int Socket_Close(void);
 int Socket_Receive(char*);
 void WiFi_Init(void);
-int connect_WiFi(void);
+int connect_WiFi(char*,char*);
 void LED_ON(void);
 void LED_OFF(void);
 void LED_Init(void);
