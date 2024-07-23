@@ -21,20 +21,25 @@ typedef struct sockaddr SOCKADDR;
 typedef struct in_addr IN_ADDR;
 
 SOCKET sock;
-SOCKADDR_IN mysin = { 0 };
 
 int Socket_Init(void){
+	static int flag = 0;
+	SOCKADDR_IN mysin = { 0 };
 
 	int ret = -1, count = 0;
+	
 
-	// Add credentials
-	#if defined(CONFIG_NET_SOCKETS_SOCKOPT_TLS)
-		ret = tls_credential_add(CA_CERTIFICATE_TAG, TLS_CREDENTIAL_CA_CERTIFICATE, ca_certificate, sizeof(ca_certificate));
-		if (ret < 0) {
-			LOG_ERR("Error during credentials registration");
-			return 0;
-		}
-	#endif
+	if (!flag){
+		// Add credentials
+		#if defined(CONFIG_NET_SOCKETS_SOCKOPT_TLS)
+			ret = tls_credential_add(CA_CERTIFICATE_TAG, TLS_CREDENTIAL_CA_CERTIFICATE, ca_certificate, sizeof(ca_certificate));
+			if (ret < 0) {
+				LOG_ERR("Error during credentials registration");
+				return 0;
+			}
+		#endif
+		flag++;
+	}
 
 	// Socket Creation
 	#if defined(CONFIG_NET_SOCKETS_SOCKOPT_TLS)
@@ -42,7 +47,7 @@ int Socket_Init(void){
 	#else
 	    sock = zsock_socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
 	#endif
-	
+
 	if(sock == INVALID_SOCKET)
 	{
 		LOG_ERR("Error during socket creation");
@@ -102,7 +107,7 @@ int Socket_Init(void){
 		}
 
 	#endif
-
+	
 	// Socket Connection
 	while(zsock_connect(sock,(SOCKADDR *) &mysin, sizeof(SOCKADDR))<0){
 		count++;
@@ -149,5 +154,13 @@ int Socket_Receive(char* data){
 	}
 	printf("\r\n");
 	LOG_INF("Total bytes received : %d",total);
+	n=0;
+	total=0;
 	return 1;
+}
+
+int Socket_Close(void){
+	zsock_close(sock);
+	LOG_INF("Socket closed");
+
 }

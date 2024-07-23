@@ -45,7 +45,6 @@ void Wifi_event_listener( struct net_mgmt_event_callback *cb, uint32_t mgmt_even
 		case NET_EVENT_WIFI_DISCONNECT_RESULT:
 			LOG_WRN("WiFi disconnected.");
 			LED_OFF();
-			connect_WiFi();
 			break;
 	}
 }
@@ -90,7 +89,8 @@ int connect_WiFi(void){
 	struct net_if_ipv4 *ipv4 = iface->config.ip.ipv4;
 	static char buf[NET_IPV4_ADDR_LEN];
 	net_addr_ntop( AF_INET, (const char *)&ipv4->unicast[0].ipv4.address.in_addr, buf, NET_IPV4_ADDR_LEN);
-	LOG_INF("Sucessfully connected to "WIFI_SSID", assigned IP address [%s]", buf);
+	LOG_INF("Sucessfully connected to "WIFI_SSID"");
+	LOG_INF("Assigned IP address [%s]", buf);
 	return 1;
 }
 
