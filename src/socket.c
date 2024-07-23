@@ -5,6 +5,9 @@
 #include "common.h"
 #include "ca_certificate.h"
 #include <zephyr/net/tls_credentials.h>
+#include <zephyr/logging/log.h>
+
+LOG_MODULE_REGISTER(socket, LOG_LEVEL_DBG);
 
 #define IP_ADDRESS "<IP_ADDRESS>"
 
@@ -20,7 +23,7 @@ typedef struct in_addr IN_ADDR;
 SOCKET sock;
 SOCKADDR_IN mysin = { 0 };
 
-void Socket_Init(void){
+int Socket_Init(void){
 
 	int ret = -1, count = 0;
 
@@ -28,7 +31,8 @@ void Socket_Init(void){
 	#if defined(CONFIG_NET_SOCKETS_SOCKOPT_TLS)
 		ret = tls_credential_add(CA_CERTIFICATE_TAG, TLS_CREDENTIAL_CA_CERTIFICATE, ca_certificate, sizeof(ca_certificate));
 		if (ret < 0) {
-			printf("\r\nFailed to register public certificate: %d\r\n", ret);
+			LOG_ERR("Error during credentials registration");
+			return 0;
 		}
 	#endif
 
@@ -41,10 +45,11 @@ void Socket_Init(void){
 	
 	if(sock == INVALID_SOCKET)
 	{
-		printf("\r\nSocket creation error (socket())\r\n");
+		LOG_ERR("Error during socket creation");
+		return 0;
 	}
 	else{
-		printf("\r\nCreated socket : %d\r\n", sock);
+		LOG_INF("Created socket : %d", sock);
 	}
 
 	// Socket Configuration
@@ -62,20 +67,23 @@ void Socket_Init(void){
 		int tls_native = 1;
 		ret = zsock_setsockopt(sock, SOL_TLS, TLS_NATIVE, &tls_native, sizeof(tls_native));
 		if(ret < 0){
-			printf("\r\nFailed to set TLS option\r\n");
+			LOG_ERR("Failed to set TLS option");
+			return 0;
 		}
 		
 		ret = zsock_setsockopt(sock, SOL_SOCKET, SO_BINDTODEVICE, &ifreq, sizeof(ifreq));
 		if(ret < 0){
-			printf("\r\nFailed to bind socket to device, setsockopt returns : %d\r\n", ret);
-			printf("\r\nErrno : %s\r\n",strerror(errno));
+			LOG_ERR("Failed to bind socket to device, setsockopt returns : %d", ret);
+			LOG_ERR("Errno : %s",strerror(errno));
+			return 0;
 		}
 
 		// Set peer verification to : 0 (none), 1 (optionnal), 2 (required)
 		int peer_verify = 2;
 		ret = zsock_setsockopt(sock, SOL_TLS, TLS_PEER_VERIFY, &peer_verify, sizeof(peer_verify));
 		if (ret < 0) {
-			printf("Failed to set TLS_PEER_VERIFY (rc %d, errno %d)", ret, errno);
+			LOG_ERR("Error during socket creation");
+			return 0;
 		}
 		
 		// Add tag(s) that could be certificate, private key, pre-shared key... (Cf Add credentials)
@@ -83,12 +91,14 @@ void Socket_Init(void){
 
 		ret = zsock_setsockopt(sock, SOL_TLS, TLS_SEC_TAG_LIST,sec_tag_list, sizeof(sec_tag_list));
 		if (ret < 0) {
-			printf("Failed to set TLS_SEC_TAG_LIST (rc %d, errno %d)", ret, errno);
+			LOG_ERR("Failed to set TLS_SEC_TAG_LIST (rc %d, errno %d)", ret, errno);
+			return 0;
 		}
 
 		ret = zsock_setsockopt(sock, SOL_TLS, TLS_HOSTNAME, TLS_PEER_HOSTNAME, sizeof(TLS_PEER_HOSTNAME));
 		if (ret < 0) {
-			printf("Failed to set TLS_HOSTNAME option (rc %d, errno %d)", ret, errno);
+			LOG_ERR("Failed to set TLS_HOSTNAME option (rc %d, errno %d)", ret, errno);
+			return 0;
 		}
 
 	#endif
@@ -96,36 +106,38 @@ void Socket_Init(void){
 	// Socket Connection
 	while(zsock_connect(sock,(SOCKADDR *) &mysin, sizeof(SOCKADDR))<0){
 		count++;
-		printf("\r\nRetrying to connect...\r\n");
+		LOG_WRN("Retrying to connect...");
 	    k_sleep(K_MSEC(1000));
 		if(count>=15){
-			printf("\r\nCannot connect\r\n");
-			return;
+			LOG_ERR("Cannot connect");
+			return 0;
 		}
 	}
-	printf("\r\nConnection success\r\n");
+	LOG_INF("Connection success");
+	return 1;
 }
 
-void Socket_Send(char * data){
+int Socket_Send(char * data){
     if(zsock_send(sock, data, strlen(data), 0) < 0)
 	{
-		printf("\r\nSend error (send())\r\n");
-		printf("\r\n%s\r\n",strerror(errno));
+		LOG_ERR("Send error (send())");
+		return 0;
 	}
 	else{
-		printf("\r\nSend succeeded, message : '%s' (send())\r\n",data);
+		LOG_INF("Send succeeded, message : '%s' (send())",data);
 		k_sleep(K_MSEC(2000));
+		return 1;
 	}
 }
 
 int Socket_Receive(char* data){
 	static int n = 0,total=0;
-	// memset(data,'\0',MAX_SIZE_BUFFER);
+	printf("\r\n\r\nData received : \r\n\r\n");
 	while (1) {
 		int n = zsock_recv(sock, data, MAX_SIZE_BUFFER - 1, 0);
 		total+=n;
 		if (n < 0) {
-			printf("Error reading response\n");
+			LOG_ERR("Error reading response");
 			return 0;
 		}
 		if (n == 0) {
@@ -135,7 +147,7 @@ int Socket_Receive(char* data){
 		printf("%s", data);
 		//Remplacer printf par écriture en flash
 	}
-	printf("\r\nTotal bytes received : %d\r\n",total);
-
-
+	printf("\r\n");
+	LOG_INF("Total bytes received : %d",total);
+	return 1;
 }

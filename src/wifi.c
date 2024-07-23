@@ -9,6 +9,9 @@
 #include <zephyr/net/net_if.h>
 #include "wifi.h"
 #include "common.h"
+#include <zephyr/logging/log.h>
+
+LOG_MODULE_REGISTER(wifi, LOG_LEVEL_DBG);
 
 // Defines
 #define WIFI_MGMT_EVENTS (		NET_EVENT_WIFI_SCAN_RESULT |		\
@@ -19,8 +22,6 @@
 // To define
 #define WIFI_SSID "<SSID>"
 #define WIFI_PASS "<PSWD>"
-
-// Typedefs
 
 // Variables
 static struct k_sem wifi_connected;
@@ -42,7 +43,7 @@ void Wifi_event_listener( struct net_mgmt_event_callback *cb, uint32_t mgmt_even
 			Wifi_check_connect_result( iface, cb );
 			break;
 		case NET_EVENT_WIFI_DISCONNECT_RESULT:
-			printf("\r\nWiFi disconnected.\r\n");
+			LOG_WRN("WiFi disconnected.");
 			LED_OFF();
 			connect_WiFi();
 			break;
@@ -51,7 +52,7 @@ void Wifi_event_listener( struct net_mgmt_event_callback *cb, uint32_t mgmt_even
 
 void WiFi_Init(void){
 	LED_Init();
-	printf("\r\nWiFi initialisation...\r\n");
+	LOG_INF("WiFi initialisation...");
 	k_sem_init(&wifi_connected, 0, 1);
 
 	// Configuration Callback
@@ -65,22 +66,23 @@ void WiFi_Init(void){
 	wifi_args.psk_length = strlen(WIFI_PASS);
 	wifi_args.ssid = WIFI_SSID;
 	wifi_args.ssid_length = strlen(WIFI_SSID);
-	printf("\r\nWiFi initialisation done.\r\n");
+	LOG_INF("WiFi initialisation done.");
 }
 
-void connect_WiFi(void){
-	printf("\r\nConnecting to WiFi...\r\n");
+int connect_WiFi(void){
+	LOG_INF("Connecting to WiFi...");
 	// Requête de connexion au réseau
 	struct net_if *iface = net_if_get_default();
 
 	// Affichage du nom de l'interface réseau
 	char iface_name[20];
 	net_if_get_name(iface,iface_name,20);
-	printf("\r\nInterface name : %s\r\n",iface_name);
+	LOG_INF("Interface name : %s",iface_name);
 
 
 	if( net_mgmt( NET_REQUEST_WIFI_CONNECT, iface, &wifi_args, sizeof(wifi_args) ) ) {
 		perror("Failed to request connection to "WIFI_SSID);
+		return 0;
 	}
 	k_sem_take(&wifi_connected, K_FOREVER);
 
@@ -88,7 +90,8 @@ void connect_WiFi(void){
 	struct net_if_ipv4 *ipv4 = iface->config.ip.ipv4;
 	static char buf[NET_IPV4_ADDR_LEN];
 	net_addr_ntop( AF_INET, (const char *)&ipv4->unicast[0].ipv4.address.in_addr, buf, NET_IPV4_ADDR_LEN);
-	printk("\r\nSucessfully connected to "WIFI_SSID"\r\nAssigned IP address [%s] \r\n", buf);
+	LOG_INF("Sucessfully connected to "WIFI_SSID", assigned IP address [%s]", buf);
+	return 1;
 }
 
 
