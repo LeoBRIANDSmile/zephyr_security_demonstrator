@@ -1,10 +1,12 @@
+# HTTPs Get shell
+This project shows how to create an HTTPs client : from the wifi connection until the addition of shell command to automate the task.
+
+
 # Configuration
 
-Before flashing the project, ensure that you have defined the following parameters in wifi.c:
+Before flashing the project, ensure that you have defined the following parameter in socket.c:
 
-    SSID: Your WiFi network name
-    PWD: Your WiFi network password
-    IP_ADDRESS: The IP address of the host
+    IP_ADDRESS: The IP address of the host (ip a on the host to determine it)
 
 # Building the Project
 ## Building with Non-Secure Communication
@@ -38,6 +40,12 @@ Finally, flash the project to your device:
 
     $ west flash
 
+
+# Testing the project
+
+On the UART terminal : 
+$ wifi connect <YOUR_SSID> <YOUR_PSWD>
+$ http get <your_file_path>
 
 
 

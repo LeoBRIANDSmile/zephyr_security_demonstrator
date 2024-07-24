@@ -9,17 +9,23 @@
 
 static int wifi_connect(const struct shell *sh,
                             size_t argc, char **argv)
-{   
-        static int ret = 0;
+{       
         if(argc==3){
+            static int ret = 0;
             ret = connect_WiFi(argv[1],argv[2]);
             if(!ret){
                 shell_print(sh, "Error when trying to connect");
             }
-            else    shell_print(sh, "Successfully connected");
+            else{
+                shell_print(sh, "Successfully connected");
+            }
         }
-        
-
+        else if(argc<3){
+            shell_print(sh, "Too few arguments");          
+        }
+        else{
+            shell_print(sh, "Too much arguments");          
+        }
 
         return 0;
 }
@@ -27,31 +33,43 @@ static int wifi_connect(const struct shell *sh,
 static int http_request(const struct shell *sh,
                             size_t argc, char **argv)
 {
-    static int ret = 0;
-    ret = Socket_Init();
-    if(!ret){
-        shell_print(sh, "Error during socket connection");
+    if(argc==2){
+        static int ret = 0;
+        char* get_request[100];
+
+        ret = Socket_Init();
+        if(!ret){
+            shell_print(sh, "Error during socket connection");
+            Socket_Close();
+            return 0;
+        }
+        strcpy(get_request,"GET ");
+        shell_print(sh, "%s",get_request);
+     
+        strcat(get_request,argv[1]);
+                shell_print(sh, "%s",get_request);
+
+        strcat(get_request,REQUEST);
+                shell_print(sh, "%s",get_request);
+
+        ret = Socket_Send(get_request);
+        if(!ret){
+            shell_print(sh, "Error while sending request");
+            Socket_Close();
+            return 0;
+        }
+
+        ret = Socket_Receive(dataToRecv);
+        if(!ret){
+            shell_print(sh, "Error while receiving data");
+            Socket_Close();
+            return 0;
+        }
+
         Socket_Close();
+
         return 0;
     }
-
-    ret = Socket_Send(REQUEST);
-    if(!ret){
-        shell_print(sh, "Error while sending request");
-        Socket_Close();
-        return 0;
-    }
-
-    ret = Socket_Receive(dataToRecv);
-    if(!ret){
-        shell_print(sh, "Error while receiving data");
-        Socket_Close();
-        return 0;
-    }
-
-    Socket_Close();
-
-    return 0;
 }
 
 SHELL_STATIC_SUBCMD_SET_CREATE(led_perso,
@@ -70,7 +88,7 @@ SHELL_STATIC_SUBCMD_SET_CREATE(device_perso,
 SHELL_CMD_REGISTER(wifi, &device_perso, "Wifi shell commands", NULL);
 
 SHELL_STATIC_SUBCMD_SET_CREATE(http_perso,
-        SHELL_CMD_ARG(request, NULL, "Send HTTP request", http_request, 1, 0),
+        SHELL_CMD_ARG(get, NULL, "Send HTTP request", http_request, 1, 1),
         SHELL_SUBCMD_SET_END
 );
 
