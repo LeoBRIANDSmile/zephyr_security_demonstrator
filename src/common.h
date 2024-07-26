@@ -12,8 +12,15 @@ int Socket_Init(void);
 int Socket_Send(char *);
 int Socket_Close(void);
 int Socket_Receive(char*);
+
 void WiFi_Init(void);
 int connect_WiFi(char*,char*);
+
 void LED_ON(void);
 void LED_OFF(void);
 void LED_Init(void);
+
+int flash_load_first_cert(char*);
+int flash_load_new_cert(char*);
+int flash_read_cert(void);
+

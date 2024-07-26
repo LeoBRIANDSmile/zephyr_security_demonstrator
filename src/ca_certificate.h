@@ -4,7 +4,7 @@
 #define CA_CERTIFICATE_TAG 1
 #define TLS_PEER_HOSTNAME "tintin"
 
-static const unsigned char ca_certificate[] = {
+static unsigned char ca_certificate[] = {
 #include "CA.der.inc"
 };
 

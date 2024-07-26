@@ -32,7 +32,7 @@ int Socket_Init(void){
 	if (!flag){
 		// Add credentials
 		#if defined(CONFIG_NET_SOCKETS_SOCKOPT_TLS)
-			ret = tls_credential_add(CA_CERTIFICATE_TAG, TLS_CREDENTIAL_CA_CERTIFICATE, ca_certificate, sizeof(ca_certificate));
+			ret = tls_credential_add(CA_CERTIFICATE_TAG, TLS_CREDENTIAL_CA_CERTIFICATE, flash_read_cert(), sizeof(flash_read_cert()));
 			if (ret < 0) {
 				LOG_ERR("Error during credentials registration");
 				return 0;
