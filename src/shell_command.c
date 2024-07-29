@@ -73,14 +73,9 @@ static int http_request(const struct shell *sh,
                 Socket_Close();
                 return 0;
             }
-            strcpy(get_request,"GET ");
-            shell_print(sh, "%s",get_request);
-        
+            strcpy(get_request,"GET ");        
             strcat(get_request,argv[1]);
-                    shell_print(sh, "%s",get_request);
-
             strcat(get_request,REQUEST);
-                    shell_print(sh, "%s",get_request);
 
             ret = Socket_Send(get_request);
             if(!ret){
@@ -201,7 +196,9 @@ SHELL_CMD_REGISTER(socket, &socket_perso, "Socket shell commands", NULL);
 static int cred_show(const struct shell *sh,
                             size_t argc, char **argv)
 {
-    shell_print(sh, "cert :",flash_read_cert());
+    char* cert;
+    cert = flash_read_cert();
+    shell_print(sh, "cert :",cert);
     return 1;
 }
 

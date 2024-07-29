@@ -27,12 +27,14 @@ int Socket_Init(void){
 	SOCKADDR_IN mysin = { 0 };
 
 	int ret = -1, count = 0;
+	char * cert;
 	
+	cert = flash_read_cert();
 
 	if (!flag){
 		// Add credentials
 		#if defined(CONFIG_NET_SOCKETS_SOCKOPT_TLS)
-			ret = tls_credential_add(CA_CERTIFICATE_TAG, TLS_CREDENTIAL_CA_CERTIFICATE, flash_read_cert(), sizeof(flash_read_cert()));
+			ret = tls_credential_add(CA_CERTIFICATE_TAG, TLS_CREDENTIAL_CA_CERTIFICATE, cert, sizeof(cert));
 			if (ret < 0) {
 				LOG_ERR("Error during credentials registration");
 				return 0;
