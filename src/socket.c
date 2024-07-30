@@ -34,7 +34,7 @@ int Socket_Init(void){
 	if (!flag){
 		// Add credentials
 		#if defined(CONFIG_NET_SOCKETS_SOCKOPT_TLS)
-			ret = tls_credential_add(CA_CERTIFICATE_TAG, TLS_CREDENTIAL_CA_CERTIFICATE, cert, sizeof(cert));
+			ret = tls_credential_add(CA_CERTIFICATE_TAG, TLS_CREDENTIAL_CA_CERTIFICATE, ca_certificate, sizeof(ca_certificate));
 			if (ret < 0) {
 				LOG_ERR("Error during credentials registration");
 				return 0;
@@ -141,11 +141,11 @@ int Socket_Receive(char* data){
 	static int n = 0,total=0;
 	printf("\r\n\r\nData received : \r\n\r\n");
 	while (1) {
-		int n = zsock_recv(sock, data, MAX_SIZE_BUFFER - 1, 0);
+		n = zsock_recv(sock, data, MAX_SIZE_BUFFER - 1, 4);
 		total+=n;
 		if (n < 0) {
-			LOG_ERR("Error reading response");
-			return 0;
+			// LOG_ERR("Error reading response");
+			break;
 		}
 		if (n == 0) {
 			break;
@@ -155,7 +155,7 @@ int Socket_Receive(char* data){
 		//Remplacer printf par écriture en flash
 	}
 	printf("\r\n");
-	LOG_INF("Total bytes received : %d",total);
+	printf("\r\nTotal bytes received : %d\r\n",total);
 	n=0;
 	total=0;
 	return 1;
@@ -164,5 +164,4 @@ int Socket_Receive(char* data){
 int Socket_Close(void){
 	zsock_close(sock);
 	LOG_INF("Socket closed");
-
 }

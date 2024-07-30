@@ -1,4 +1,4 @@
-#define MAX_SIZE_BUFFER 1024
+#define MAX_SIZE_BUFFER 2048
 
 // Global variables
 static char dataToRecv[MAX_SIZE_BUFFER];

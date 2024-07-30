@@ -86,7 +86,7 @@ static int http_request(const struct shell *sh,
 
             ret = Socket_Receive(dataToRecv);
             if(!ret){
-                shell_print(sh, "Error while receiving data");
+                // shell_print(sh, "Error while receiving data");
                 Socket_Close();
                 return 0;
             }
