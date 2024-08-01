@@ -141,7 +141,7 @@ int Socket_Receive(char* data){
 	static int n = 0,total=0;
 	printf("\r\n\r\nData received : \r\n\r\n");
 	while (1) {
-		n = zsock_recv(sock, data, MAX_SIZE_BUFFER - 1, 4);
+		n = zsock_recv(sock, data, MAX_SIZE_BUFFER - 1, 0);
 		total+=n;
 		if (n < 0) {
 			// LOG_ERR("Error reading response");
