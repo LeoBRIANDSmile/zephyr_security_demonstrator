@@ -1,3 +1,6 @@
+#ifndef __COMMON_H__
+#define __COMMON_H__
+
 #define MAX_SIZE_BUFFER         1460
 #define CERT_SIZE               779
 
@@ -24,6 +27,8 @@ void LED_Init(void);
 int flash_load_first_cert(char*);
 int flash_load_new_cert(char*);
 char* flash_read_cert(int);
+int swap_certs(void);
 
 int http_get_new_cert(char*);
 
+#endif

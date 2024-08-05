@@ -8,6 +8,7 @@
 #include "common.h"
 #include <zephyr/net/tls_credentials.h>
 #include "ca_certificate.h"
+#include <zephyr/sys/reboot.h>
 
 int state_wifi=0;
 
@@ -226,9 +227,11 @@ static int cred_update(const struct shell *sh,
 
     flash_load_new_cert(cert);
 
-    // TESTER LE NOUVEAU CERTIFICAT ! 
-
+    // TEST NEW CERTS
+    swap_certs();
     Socket_Close();
+
+    sys_reboot(SYS_REBOOT_COLD);
 
     return 1;
 }

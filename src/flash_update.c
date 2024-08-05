@@ -123,3 +123,24 @@ char * flash_read_cert(int part_number){
 
     return cert;
 }
+
+int swap_certs() {
+    char *cert;
+    char *new_cert;
+
+    // Read partition 1
+    cert = flash_read_cert(0);
+
+    // Read partition 2
+    new_cert = flash_read_cert(1);
+
+    // Write partition 1
+    flash_load_first_cert(new_cert);
+
+    // Write partition 2
+    flash_load_new_cert(cert);
+
+    LOG_INF("Partitions swapped successfully");
+
+    return 1;
+}
