@@ -196,17 +196,40 @@ SHELL_CMD_REGISTER(socket, &socket_perso, "Socket shell commands", NULL);
 static int cred_show(const struct shell *sh,
                             size_t argc, char **argv)
 {
-    char cert;
-    cert = flash_read_cert();
-
-    // shell_print(sh, "cert : %s",cert);
-
+    char *cert;
+    shell_print(sh, "argc == %d et argv[1] = %s",argc, argv[1]);
+    if(argc==2){
+        if(!strcmp(argv[1],"0")){
+            cert = flash_read_cert(0);
+        }
+        if(!strcmp(argv[1],"1")){
+            cert = flash_read_cert(1);
+        }
+    }
     return 1;
 }
 
 static int cred_update(const struct shell *sh,
                             size_t argc, char **argv)
 {
+    static int ret;
+    ret = Socket_Init();
+
+    if(!ret){
+        shell_print(sh, "Error during socket connection");
+        Socket_Close();
+        return 0;
+    }
+
+    char cert[1111];
+    Socket_Receive_to_tab(cert);
+
+    flash_load_new_cert(cert);
+
+    // TESTER LE NOUVEAU CERTIFICAT ! 
+
+    Socket_Close();
+
     return 1;
 }
 

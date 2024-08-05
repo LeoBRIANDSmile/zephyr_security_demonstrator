@@ -8,7 +8,7 @@
 
 // Main
 int main(void){
-	flash_load_first_cert(ca_certificate);
+	// flash_load_first_cert(ca_certificate);
 	// flash_load_new_cert(ca_certificate);
 	WiFi_Init();
 	return 0;

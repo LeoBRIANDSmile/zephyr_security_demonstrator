@@ -30,7 +30,7 @@ int Socket_Init(void){
 
 	if (!flag){
 		// Add credentials
-		char *cert = flash_read_cert();
+		char *cert = flash_read_cert(0);
 
 		LOG_HEXDUMP_INF(cert, 779, "CERT BUFFER CONTENT");
 
@@ -161,6 +161,13 @@ int Socket_Receive(char* data){
 	printf("\r\nTotal bytes received : %d\r\n",total);
 	n=0;
 	total=0;
+	return 1;
+}
+
+int Socket_Receive_to_tab(char* data){
+	static int n = 0;
+	n = zsock_recv(sock, data, MAX_SIZE_BUFFER, 0);
+	printf("%s", data);
 	return 1;
 }
 

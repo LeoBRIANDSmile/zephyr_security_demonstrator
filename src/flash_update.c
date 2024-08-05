@@ -84,19 +84,30 @@ int flash_update_cert(void){
     return 1;
 }
 
-char * flash_read_cert(void){
+char * flash_read_cert(int part_number){
     char *cert;
     const struct device *flash_dev;
     off_t *fa;
 
-    cert = malloc(CERT_SIZE);  
-    if (cert == NULL) {
-        LOG_ERR("Memory allocation failed.");
-        return NULL;
+    if (!part_number) {
+        cert = malloc(CERT_SIZE);  
+        if (cert == NULL) {
+            LOG_ERR("Memory allocation failed.");
+            return NULL;
+        }
+        fa = FIXED_PARTITION_OFFSET(cert0_PARTITION);
+        flash_dev = DEVICE_DT_GET(DT_NODELABEL(mx25r6435f));
     }
-
-    fa = FIXED_PARTITION_OFFSET(cert0_PARTITION);
-    flash_dev = DEVICE_DT_GET(DT_NODELABEL(mx25r6435f));
+    else {
+        cert = malloc(CERT_SIZE);  
+        if (cert == NULL) {
+            LOG_ERR("Memory allocation failed.");
+            return NULL;
+        }
+        fa = FIXED_PARTITION_OFFSET(cert1_PARTITION);
+        flash_dev = DEVICE_DT_GET(DT_NODELABEL(mx25r6435f));
+    }
+    
 
     if (!device_is_ready(flash_dev)) {
 		LOG_ERR("%s: device not ready.\n", flash_dev->name);
