@@ -5,6 +5,7 @@
 #include <zephyr/devicetree.h>
 #include <stdio.h>
 #include <zephyr/logging/log.h>
+#include "common.h"
 
 #define cert0_PARTITION		    cert0_partition
 #define cert0_PARTITION_ID	    FIXED_PARTITION_ID(cert0_PARTITION)
@@ -21,65 +22,60 @@ LOG_MODULE_REGISTER(flash_update, LOG_LEVEL_DBG);
 
 int flash_load_first_cert(char * cert){
     const struct device *flash_dev;
-    const struct flash_area *fa;
-    // off_t flash_area = FIXED_PARTITION_OFFSET(cert0_PARTITION);
+    off_t *fa;
 
     fa = FIXED_PARTITION_OFFSET(cert0_PARTITION);
-    flash_dev = DEVICE_DT_GET(DT_NODELABEL(mx25r6435f));
+    flash_dev = DEVICE_DT_GET(DT_CHOSEN(zephyr_flash_controller));
 
-    // if(flash_area_open(cert0_PARTITION_ID, &flash_area)==0){
-    //     printf("\r\nError during flash open\r\n");
-    //     return 0;
-    // }
-
-    LOG_INF("fa_offset : %d", fa->fa_off);
-
-
+    LOG_INF("fa_offset : 0x%x", fa);
+    LOG_INF("fa_dev : %s", flash_dev->name);
+    
     if (!device_is_ready(flash_dev)) {
 		LOG_ERR("%s: device not ready.\n", flash_dev->name);
 		return 0;
 	}
 
-    if(flash_erase(flash_dev, fa->fa_off, FLASH_SECTOR_SIZE)<0){
-        LOG_ERR("\r\nError during flash erase\r\n");
+    if(flash_erase(flash_dev, fa, FLASH_SECTOR_SIZE)<0){
+        LOG_ERR("Error during flash erase");
         return 0;
     }
-    LOG_INF("fa_offset : %d", fa->fa_off);
-    if(flash_write(flash_dev, fa->fa_off, cert, sizeof(cert))<0){
-        LOG_ERR("\r\nError during flash write\r\n");
+
+    if(flash_write(flash_dev, fa, cert, CERT_SIZE)<0){
+        LOG_ERR("Error during flash write");
         return 0;
     }
+
+    LOG_INF("First certificate loaded successfully");
     
     return 1;
 }
 
 int flash_load_new_cert(char * cert){
     const struct device *flash_dev;
-    // const struct flash_area *flash_area;
-    off_t flash_area = FIXED_PARTITION_OFFSET(cert0_PARTITION);
+    off_t *fa;
 
-    // flash_area = FIXED_PARTITION_OFFSET(cert0_PARTITION);
-    flash_dev = DEVICE_DT_GET(DT_NODELABEL(mx25r6435f));
+    fa = FIXED_PARTITION_OFFSET(cert1_PARTITION);
+    flash_dev = DEVICE_DT_GET(DT_CHOSEN(zephyr_flash_controller));
 
-    // if(flash_area_open(cert0_PARTITION_ID, &flash_area)==0){
-    //     printf("\r\nError during flash open\r\n");
-    //     return 0;
-    // }
-
+    LOG_INF("fa_offset : 0x%x", fa);
+    LOG_INF("fa_dev : %s", flash_dev->name);
+    
     if (!device_is_ready(flash_dev)) {
 		LOG_ERR("%s: device not ready.\n", flash_dev->name);
 		return 0;
 	}
 
-    if(flash_erase(flash_dev, flash_area, FLASH_SECTOR_SIZE)<0){
-        LOG_ERR("\r\nError during flash erase\r\n");
+    if(flash_erase(flash_dev, fa, FLASH_SECTOR_SIZE)<0){
+        LOG_ERR("Error during flash erase");
         return 0;
     }
-    LOG_INF("fa_offset : %d", flash_area);
-    if(flash_write(flash_dev, flash_area, cert, sizeof(cert))<0){
-        LOG_ERR("\r\nError during flash write\r\n");
+
+    if(flash_write(flash_dev, fa, cert, CERT_SIZE)<0){
+        LOG_ERR("Error during flash write");
         return 0;
     }
+
+    LOG_INF("New certificate loaded successfully");
     
     return 1;
 }
@@ -89,11 +85,17 @@ int flash_update_cert(void){
 }
 
 char * flash_read_cert(void){
-    char cert[2000];
+    char *cert;
     const struct device *flash_dev;
-    const struct flash_area *flash_area;
+    off_t *fa;
 
-    flash_area = FIXED_PARTITION_OFFSET(cert0_PARTITION);
+    cert = malloc(CERT_SIZE);  
+    if (cert == NULL) {
+        LOG_ERR("Memory allocation failed.");
+        return NULL;
+    }
+
+    fa = FIXED_PARTITION_OFFSET(cert0_PARTITION);
     flash_dev = DEVICE_DT_GET(DT_NODELABEL(mx25r6435f));
 
     if (!device_is_ready(flash_dev)) {
@@ -101,9 +103,12 @@ char * flash_read_cert(void){
 		return 0;
 	}
 
-    if(flash_read(flash_dev, flash_area, cert, sizeof(cert))<0){
-        LOG_ERR("\r\nError during flash read\r\n");
+    if(flash_read(flash_dev, fa, cert, CERT_SIZE)<0){
+        LOG_ERR("Error during flash read");
         return 0;
     }
+
+    LOG_HEXDUMP_INF(cert, CERT_SIZE, "CERT BUFFER CONTENT");
+
     return cert;
 }

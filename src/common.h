@@ -1,4 +1,5 @@
-#define MAX_SIZE_BUFFER 2048
+#define MAX_SIZE_BUFFER         2048
+#define CERT_SIZE               779
 
 // Global variables
 static char dataToRecv[MAX_SIZE_BUFFER];
@@ -22,5 +23,5 @@ void LED_Init(void);
 
 int flash_load_first_cert(char*);
 int flash_load_new_cert(char*);
-int flash_read_cert(void);
+char* flash_read_cert(void);
 

@@ -196,9 +196,11 @@ SHELL_CMD_REGISTER(socket, &socket_perso, "Socket shell commands", NULL);
 static int cred_show(const struct shell *sh,
                             size_t argc, char **argv)
 {
-    char* cert;
+    char cert;
     cert = flash_read_cert();
-    shell_print(sh, "cert :",cert);
+
+    // shell_print(sh, "cert : %s",cert);
+
     return 1;
 }
 

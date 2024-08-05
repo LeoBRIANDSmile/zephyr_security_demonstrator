@@ -8,7 +8,6 @@ target_sources(app PRIVATE ${app_sources})
 
 set(gen_dir ${ZEPHYR_BINARY_DIR}/include/generated/)
 
-
 generate_inc_file_for_target(
     app
     certs/CA.der

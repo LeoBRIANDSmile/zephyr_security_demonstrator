@@ -27,19 +27,23 @@ int Socket_Init(void){
 	SOCKADDR_IN mysin = { 0 };
 
 	int ret = -1, count = 0;
-	char * cert;
-	
-	cert = flash_read_cert();
 
 	if (!flag){
 		// Add credentials
+		char *cert = flash_read_cert();
+
+		LOG_HEXDUMP_INF(cert, 779, "CERT BUFFER CONTENT");
+
 		#if defined(CONFIG_NET_SOCKETS_SOCKOPT_TLS)
-			ret = tls_credential_add(CA_CERTIFICATE_TAG, TLS_CREDENTIAL_CA_CERTIFICATE, ca_certificate, sizeof(ca_certificate));
+			ret = tls_credential_add(CA_CERTIFICATE_TAG, TLS_CREDENTIAL_CA_CERTIFICATE, cert, CERT_SIZE);
 			if (ret < 0) {
 				LOG_ERR("Error during credentials registration");
 				return 0;
 			}
 		#endif
+
+		free(cert);
+
 		flag++;
 	}
 
@@ -50,12 +54,11 @@ int Socket_Init(void){
 	    sock = zsock_socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
 	#endif
 
-	if(sock == INVALID_SOCKET)
-	{
+	if (sock == INVALID_SOCKET) {
 		LOG_ERR("Error during socket creation");
 		return 0;
 	}
-	else{
+	else {
 		LOG_INF("Created socket : %d", sock);
 	}
 
