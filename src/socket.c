@@ -6,6 +6,10 @@
 #include "ca_certificate.h"
 #include <zephyr/net/tls_credentials.h>
 #include <zephyr/logging/log.h>
+#include <zephyr/drivers/flash.h>
+#include <zephyr/kernel.h>
+#include <zephyr/storage/flash_map.h>
+#include <zephyr/devicetree.h>
 
 LOG_MODULE_REGISTER(socket, LOG_LEVEL_DBG);
 
@@ -32,7 +36,7 @@ int Socket_Init(void){
 		// Add credentials
 		char *cert = flash_read_cert(0);
 
-		LOG_HEXDUMP_INF(cert, 779, "CERT BUFFER CONTENT");
+		// LOG_HEXDUMP_INF(cert, 779, "CERT BUFFER CONTENT");
 
 		#if defined(CONFIG_NET_SOCKETS_SOCKOPT_TLS)
 			ret = tls_credential_add(CA_CERTIFICATE_TAG, TLS_CREDENTIAL_CA_CERTIFICATE, cert, CERT_SIZE);
@@ -168,6 +172,68 @@ int Socket_Receive_to_tab(char* data){
 	static int n = 0;
 	n = zsock_recv(sock, data, MAX_SIZE_BUFFER, 0);
 	printf("%s", data);
+	return 1;
+}
+
+int Socket_Receive_firmware_to_flash(){
+	uint32_t n = 0, current_pos=0;
+	int ret = 0;
+	const struct device *flash_dev;
+    off_t dfu_flash_offset;
+	char buf_to_write[FLASH_SECTOR_SIZE];
+
+    dfu_flash_offset = FIXED_PARTITION_OFFSET(slot1_partition);
+    flash_dev = DEVICE_DT_GET(DT_CHOSEN(zephyr_flash_controller));
+
+    LOG_INF("dfu_flash_offset_offset : 0x%x", dfu_flash_offset);
+    LOG_INF("dfu_flash_offset_dev : %s", flash_dev->name);
+
+	if (!device_is_ready(flash_dev)) {
+		LOG_ERR("%s: device not ready.\n", flash_dev->name);
+		return 0;
+	}
+
+	ret = flash_erase(flash_dev, dfu_flash_offset, FLASH_SECTOR_SIZE*210);
+	if (ret<0) {
+		LOG_ERR("Error during flash erase");
+		return 0;
+	}
+
+	printf("\r\nDownloading firmware...\r\n");
+
+	while (1) {
+		n = zsock_recv(sock, buf_to_write, sizeof(buf_to_write), 0);
+		if (n < 0) {
+			return 0;
+		}
+		n = zsock_recv(sock, buf_to_write+n, sizeof(buf_to_write), 0);
+		if (n < 0) {
+			return 0;
+		}
+		else {			
+			ret = flash_write(flash_dev, dfu_flash_offset, buf_to_write, FLASH_SECTOR_SIZE);
+			if (ret<0) {
+				LOG_ERR("Error during flash write");
+				printf("\r\nError during downloading\r\n");
+				return 0;
+			}
+
+			ret = flash_read(flash_dev, dfu_flash_offset, buf_to_write, FLASH_SECTOR_SIZE);
+			if (ret<0) {
+				LOG_ERR("Error during flash read");
+			}		
+			
+			printf("\nMemory addr :%p\n", dfu_flash_offset);
+			dfu_flash_offset+=FLASH_SECTOR_SIZE;
+			printf("\n%d\n", dfu_flash_offset);
+			if (0 == n) {
+				break;
+			}
+		}
+
+	}
+	printf("\r\nFirmware Downloaded successfully\r\n");
+
 	return 1;
 }
 

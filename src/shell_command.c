@@ -243,3 +243,34 @@ SHELL_STATIC_SUBCMD_SET_CREATE(cred_perso,
 );
 
 SHELL_CMD_REGISTER(cred, &cred_perso, "Credentials shell commands", NULL);
+
+
+// Firmware Update Commands
+
+static int download_firmware(const struct shell *sh,
+                            size_t argc, char **argv)
+{
+    static int ret;
+    ret = Socket_Init();
+
+    if(!ret){
+        shell_print(sh, "Error during socket connection");
+        Socket_Close();
+        return 0;
+    }
+
+    Socket_Receive_firmware_to_flash();
+    
+    Socket_Close();
+
+    sys_reboot(SYS_REBOOT_COLD);
+
+    return 1;
+}
+
+SHELL_STATIC_SUBCMD_SET_CREATE(dfu_perso,
+        SHELL_CMD_ARG(download, NULL, "Show credentials", download_firmware, 1, 0),
+        SHELL_SUBCMD_SET_END
+);
+
+SHELL_CMD_REGISTER(dfu, &dfu_perso, "Credentials shell commands", NULL);
