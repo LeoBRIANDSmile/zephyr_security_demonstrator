@@ -49,6 +49,18 @@ Finally, flash the project to your device:
 
     $ west flash
 
+### Step 4: Flash the Project
+
+Go to MCUboot project in zephyrproject/bootloader/mcuboot/boot/zephyr
+
+Modify it in order to add signature and encryption 
+
+And then build and flash : 
+
+    $ west build -p always -b disco_l475_iot1
+
+    $ west flash
+
 
 # Testing the project
 

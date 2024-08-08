@@ -9,6 +9,7 @@
 #include <zephyr/net/tls_credentials.h>
 #include "ca_certificate.h"
 #include <zephyr/sys/reboot.h>
+#include <zephyr/dfu/mcuboot.h>
 
 int state_wifi=0;
 
@@ -263,7 +264,20 @@ static int download_firmware(const struct shell *sh,
     
     Socket_Close();
 
+    ret = boot_request_upgrade(BOOT_UPGRADE_TEST);
+    if (ret) {
+        shell_print(sh,"Failed to request upgrade (error %d)\r\n", ret);
+    }
+    else {
+        shell_print(sh, "Upgrade requested, will swap slots on next reboot\r\n");
+    }
+
+    shell_print(sh, "Rebooting system...\n");
+
     sys_reboot(SYS_REBOOT_COLD);
+
+    k_sleep(K_MSEC(2000));
+
 
     return 1;
 }

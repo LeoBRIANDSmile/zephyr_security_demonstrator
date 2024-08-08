@@ -193,13 +193,19 @@ int Socket_Receive_firmware_to_flash(){
 		return 0;
 	}
 
+	printf("\r\nErasing flash...\r\n");
+
 	ret = flash_erase(flash_dev, dfu_flash_offset, FLASH_SECTOR_SIZE*210);
 	if (ret<0) {
 		LOG_ERR("Error during flash erase");
 		return 0;
 	}
 
+	printf("Flash erased\r\n");
+
+
 	printf("\r\nDownloading firmware...\r\n");
+	printf("\r[.......................]");
 
 	while (1) {
 		n = zsock_recv(sock, buf_to_write, sizeof(buf_to_write), 0);
@@ -217,10 +223,7 @@ int Socket_Receive_firmware_to_flash(){
 				printf("\r\nError during downloading\r\n");
 				return 0;
 			}
-			
-			printf("\nMemory addr :%p\n", dfu_flash_offset);
 			dfu_flash_offset+=FLASH_SECTOR_SIZE;
-			printf("\n%d\n", dfu_flash_offset);
 			if (0 == n) {
 				break;
 			}
@@ -228,7 +231,7 @@ int Socket_Receive_firmware_to_flash(){
 
 
 	}
-	printf("\r\nFirmware Downloaded successfully\r\n");
+	printf("\r\nFirmware downloaded successfully\r\n\r\n");
 
 	return 1;
 }
