@@ -19,7 +19,7 @@ void progress_bar(int progress, int max){
 
     printf("[");
     for (int i = 0; i < filled_length; i++) {
-        printf("|");
+        printf("#");
     }
     for (int i = 0; i < remaining_length; i++) {
         printf(".");

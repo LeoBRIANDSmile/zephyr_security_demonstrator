@@ -282,8 +282,31 @@ static int download_firmware(const struct shell *sh,
     return 1;
 }
 
+static int rollback_firmware(const struct shell *sh,
+                            size_t argc, char **argv)
+{
+    int ret;
+
+    ret = boot_request_upgrade(BOOT_UPGRADE_TEST);
+    if (ret) {
+        shell_print(sh,"Failed to request rollback (error %d)\r\n", ret);
+    }
+    else {
+        shell_print(sh, "Rollback requested, will swap slots on next reboot\r\n");
+    }
+
+    shell_print(sh, "\r\nRebooting system...\r\n");
+
+    k_sleep(K_MSEC(2000));
+
+    sys_reboot(SYS_REBOOT_COLD);
+
+    return 1;
+}
+
 SHELL_STATIC_SUBCMD_SET_CREATE(dfu_perso,
         SHELL_CMD_ARG(download, NULL, "Show credentials", download_firmware, 1, 0),
+        SHELL_CMD_ARG(rollback, NULL, "Show credentials", rollback_firmware, 1, 0),
         SHELL_SUBCMD_SET_END
 );
 
