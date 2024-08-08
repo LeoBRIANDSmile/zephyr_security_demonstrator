@@ -34,4 +34,6 @@ int swap_certs(void);
 
 int http_get_new_cert(char*);
 
+void progress_bar(int, int);
+
 #endif

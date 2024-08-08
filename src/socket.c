@@ -224,6 +224,7 @@ int Socket_Receive_firmware_to_flash(){
 				return 0;
 			}
 			dfu_flash_offset+=FLASH_SECTOR_SIZE;
+			progress_bar(dfu_flash_offset,251252);
 			if (0 == n) {
 				break;
 			}

@@ -53,7 +53,7 @@ Finally, flash the project to your device:
 
 Go to MCUboot project in zephyrproject/bootloader/mcuboot/boot/zephyr
 
-Modify it in order to add signature and encryption 
+Modify it in order to add binary signature whe building
 
 And then build and flash : 
 
