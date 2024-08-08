@@ -217,11 +217,6 @@ int Socket_Receive_firmware_to_flash(){
 				printf("\r\nError during downloading\r\n");
 				return 0;
 			}
-
-			ret = flash_read(flash_dev, dfu_flash_offset, buf_to_write, FLASH_SECTOR_SIZE);
-			if (ret<0) {
-				LOG_ERR("Error during flash read");
-			}		
 			
 			printf("\nMemory addr :%p\n", dfu_flash_offset);
 			dfu_flash_offset+=FLASH_SECTOR_SIZE;
@@ -230,6 +225,7 @@ int Socket_Receive_firmware_to_flash(){
 				break;
 			}
 		}
+
 
 	}
 	printf("\r\nFirmware Downloaded successfully\r\n");
