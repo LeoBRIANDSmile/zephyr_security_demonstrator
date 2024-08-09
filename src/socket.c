@@ -10,6 +10,7 @@
 #include <zephyr/kernel.h>
 #include <zephyr/storage/flash_map.h>
 #include <zephyr/devicetree.h>
+// #include <zephyr/pm_config.h>
 
 LOG_MODULE_REGISTER(socket, LOG_LEVEL_DBG);
 
@@ -181,7 +182,9 @@ int Socket_Receive_firmware_to_flash(){
 	const struct device *flash_dev;
     off_t dfu_flash_offset;
 	char buf_to_write[FLASH_SECTOR_SIZE];
+	size_t partition_size;
 
+	partition_size = FIXED_PARTITION_SIZE(slot1_partition);
     dfu_flash_offset = FIXED_PARTITION_OFFSET(slot1_partition);
     flash_dev = DEVICE_DT_GET(DT_CHOSEN(zephyr_flash_controller));
 
@@ -193,19 +196,19 @@ int Socket_Receive_firmware_to_flash(){
 		return 0;
 	}
 
-	printf("\r\nErasing flash...\r\n");
+	printf("\r\nErasing second slot...\r\n");
 
-	ret = flash_erase(flash_dev, dfu_flash_offset, FLASH_SECTOR_SIZE*210);
-	if (ret<0) {
-		LOG_ERR("Error during flash erase");
-		return 0;
+	for (int i = 0; i<partition_size; i+=FLASH_SECTOR_SIZE) {
+		ret = flash_erase(flash_dev, dfu_flash_offset+i, FLASH_SECTOR_SIZE);
+		if(ret<0){
+			printf("\r\nError during flash erase\r\n");
+		}
+		progress_bar(i,partition_size-FLASH_SECTOR_SIZE);
 	}
-
-	printf("Flash erased\r\n");
-
+	
+	printf("\r\nSecond slot erased successfully\r\n");
 
 	printf("\r\nDownloading firmware...\r\n");
-	printf("\r[.......................]");
 
 	while (1) {
 		n = zsock_recv(sock, buf_to_write, sizeof(buf_to_write), 0);
@@ -224,13 +227,11 @@ int Socket_Receive_firmware_to_flash(){
 				return 0;
 			}
 			dfu_flash_offset+=FLASH_SECTOR_SIZE;
-			progress_bar(dfu_flash_offset,251252);
+			progress_bar(dfu_flash_offset,260000);
 			if (0 == n) {
 				break;
 			}
 		}
-
-
 	}
 	printf("\r\nFirmware downloaded successfully\r\n\r\n");
 
