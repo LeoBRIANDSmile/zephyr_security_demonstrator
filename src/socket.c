@@ -177,7 +177,7 @@ int Socket_Receive_to_tab(char* data){
 }
 
 int Socket_Receive_firmware_to_flash(){
-	uint32_t n = 0;
+	uint32_t n = 0, remaining_size = FLASH_SECTOR_SIZE;
 	int ret = 0;
 	const struct device *flash_dev;
     off_t dfu_flash_offset;
@@ -211,27 +211,36 @@ int Socket_Receive_firmware_to_flash(){
 	printf("\r\nDownloading firmware...\r\n");
 
 	while (1) {
-		n = zsock_recv(sock, buf_to_write, sizeof(buf_to_write), 0);
-		if (n < 0) {
-			return 0;
-		}
-		n = zsock_recv(sock, buf_to_write+n, sizeof(buf_to_write), 0);
-		if (n < 0) {
-			return 0;
-		}
-		else {			
-			ret = flash_write(flash_dev, dfu_flash_offset, buf_to_write, FLASH_SECTOR_SIZE);
-			if (ret<0) {
-				LOG_ERR("Error during flash write");
-				printf("\r\nError during downloading\r\n");
+		int total_bytes_received = 0;
+    
+    	while (total_bytes_received < FLASH_SECTOR_SIZE) {
+			int bytes_remaining = FLASH_SECTOR_SIZE - total_bytes_received;
+			
+			n = zsock_recv(sock, buf_to_write + total_bytes_received, bytes_remaining, 0);
+			
+			if (n < 0) {
 				return 0;
-			}
-			dfu_flash_offset+=FLASH_SECTOR_SIZE;
-			progress_bar(dfu_flash_offset,260000);
-			if (0 == n) {
+			} 
+			else if (n == 0) {
 				break;
 			}
+			
+			total_bytes_received += n;
+    	}
+				
+		ret = flash_write(flash_dev, dfu_flash_offset, buf_to_write, FLASH_SECTOR_SIZE);
+
+		if (ret<0) {
+			LOG_ERR("Error during flash write");
+			printf("\r\nError during downloading\r\n");
+			return 0;
 		}
+		dfu_flash_offset+=FLASH_SECTOR_SIZE;
+		progress_bar(dfu_flash_offset,250000);
+		if (0 == n) {
+			break;
+		}
+
 	}
 	printf("\r\nFirmware downloaded successfully\r\n\r\n");
 
