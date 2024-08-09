@@ -29,6 +29,7 @@ SHELL_CMD_REGISTER(led, &led_perso, "Wifi shell commands", NULL);
 static int wifi_connect(const struct shell *sh,
                             size_t argc, char **argv)
 {       
+    if(!state_wifi){
         if(argc==3){
             static int ret = 0;
             ret = connect_WiFi(argv[1],argv[2]);
@@ -49,6 +50,10 @@ static int wifi_connect(const struct shell *sh,
             shell_print(sh, "Too much arguments");          
             return 0;         
         }
+    }
+    else {
+        shell_print(sh, "Already connected to Wi-Fi");
+    }
 }
 
 SHELL_STATIC_SUBCMD_SET_CREATE(wifi_perso,
@@ -274,10 +279,9 @@ static int download_firmware(const struct shell *sh,
 
     shell_print(sh, "Rebooting system...\n");
 
-    sys_reboot(SYS_REBOOT_COLD);
-
     k_sleep(K_MSEC(2000));
 
+    sys_reboot(SYS_REBOOT_COLD);
 
     return 1;
 }
@@ -305,9 +309,41 @@ static int rollback_firmware(const struct shell *sh,
 }
 
 SHELL_STATIC_SUBCMD_SET_CREATE(dfu_perso,
-        SHELL_CMD_ARG(download, NULL, "Show credentials", download_firmware, 1, 0),
-        SHELL_CMD_ARG(rollback, NULL, "Show credentials", rollback_firmware, 1, 0),
+        SHELL_CMD_ARG(download, NULL, "Upgrade firmware to the latest version", download_firmware, 1, 0),
+        SHELL_CMD_ARG(rollback, NULL, "Rollback firmware to the previous version", rollback_firmware, 1, 0),
         SHELL_SUBCMD_SET_END
 );
 
-SHELL_CMD_REGISTER(dfu, &dfu_perso, "Credentials shell commands", NULL);
+SHELL_CMD_REGISTER(dfu, &dfu_perso, "DFU shell commands", NULL);
+
+static int reboot_target_cold(const struct shell *sh,
+                            size_t argc, char **argv)
+{
+    shell_print(sh, "\r\nRebooting system...\r\n");
+
+    k_sleep(K_MSEC(2000));
+
+    sys_reboot(SYS_REBOOT_COLD);
+
+    return 1;
+}
+
+static int reboot_target_warm(const struct shell *sh,
+                            size_t argc, char **argv)
+{
+    shell_print(sh, "\r\nRebooting system...\r\n");
+
+    k_sleep(K_MSEC(2000));
+
+    sys_reboot(SYS_REBOOT_WARM);
+
+    return 1;
+}
+
+SHELL_STATIC_SUBCMD_SET_CREATE(reboot_perso,
+        SHELL_CMD_ARG(cold, NULL, "Cold reboot of the target", reboot_target_cold, 1, 0),
+        SHELL_CMD_ARG(warm, NULL, "Warm reboot of the target", reboot_target_warm, 1, 0),
+        SHELL_SUBCMD_SET_END
+);
+
+SHELL_CMD_REGISTER(reboot, &reboot_perso, "Reboot shell commands", NULL);
