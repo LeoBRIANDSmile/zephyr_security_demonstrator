@@ -177,7 +177,7 @@ int Socket_Receive_to_tab(char* data){
 }
 
 int Socket_Receive_firmware_to_flash(){
-	uint32_t n = 0, current_pos=0;
+	uint32_t n = 0;
 	int ret = 0;
 	const struct device *flash_dev;
     off_t dfu_flash_offset;

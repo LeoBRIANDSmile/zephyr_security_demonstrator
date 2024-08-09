@@ -9,6 +9,8 @@
 // Global variables
 static char dataToRecv[MAX_SIZE_BUFFER];
 
+extern int state_wifi;
+
 #define HTTP_HOST "https://172.20.10.3" 
 #define HTTP_PORT 443
 #define REQUEST /*"GET " HTTP_PATH*/ " HTTP/1.0\r\nHost: " HTTP_HOST "\r\n\r\n"
@@ -31,6 +33,10 @@ int flash_load_first_cert(char*);
 int flash_load_new_cert(char*);
 char* flash_read_cert(int);
 int swap_certs(void);
+int register_wifi_cred(char* , char* );
+int wifi_connect_if_cred_registered(void);
+
+
 
 int http_get_new_cert(char*);
 

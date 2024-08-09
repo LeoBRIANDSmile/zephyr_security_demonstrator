@@ -39,6 +39,10 @@ static int wifi_connect(const struct shell *sh,
             else{
                 shell_print(sh, "Successfully connected");
                 state_wifi=1;
+                ret = register_wifi_cred(argv[1] , argv[2]);
+                if (!ret) {
+                    shell_print(sh, "Error during wifi cred registration");
+                }
                 return 1;
             }
         }

@@ -91,5 +91,3 @@ int connect_WiFi(char* SSID, char* PSWD){
 	return 1;
 }
 
-
-
