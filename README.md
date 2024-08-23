@@ -8,61 +8,6 @@ Before flashing the project, ensure that you have defined the following paramete
 
     IP_ADDRESS: The IP address of the host (ip a on the host to determine it)
 
-# Modify the device tree of disco board
-
-&quadspi {
-	pinctrl-0 = <&quadspi_clk_pe10 &quadspi_ncs_pe11
-		     &quadspi_bk1_io0_pe12 &quadspi_bk1_io1_pe13
-		     &quadspi_bk1_io2_pe14 &quadspi_bk1_io3_pe15>;
-	pinctrl-names = "default";
-	dmas = <&dma1 5 5 0x0000>;
-	dma-names = "tx_rx";
-
-	status = "okay";
-
-	mx25r6435f: qspi-nor-flash@90000000 {
-		compatible = "st,stm32-qspi-nor";
-		reg = <0x90000000 DT_SIZE_M(8)>; /* 64 Mbits */
-		qspi-max-frequency = <50000000>;
-		status = "okay";
-
-		partitions {
-			compatible = "fixed-partitions";
-			#address-cells = <1>;
-			#size-cells = <1>;
-
-			slot1_partition: partition@0 {
-				label = "image-1";
-				reg = <0x00000000 DT_SIZE_K(864)>; 	// Secteur 0 a 210
-			};
-			
-			/* Added */
-			cert0_partition: partition@d4000 {
-				label = "cert-0";
-				reg = <0x000d4000 DT_SIZE_K(4)>; 	// Secteur 211
-			};
-			cert1_partition: partition@d6000{
-				label = "cert-1";
-				reg = <0x000d6000 DT_SIZE_K(4)>; 	// Secteur 212
-			};
-			ssid_partition: partition@d8000 {
-				label = "ssid";
-				reg = <0x000d8000 DT_SIZE_K(4)>; 	// Secteur 213
-			};
-			pswd_partition: partition@da000{
-				label = "pswd";
-				reg = <0x000da000 DT_SIZE_K(4)>; 	// Secteur 214
-			};
-			/* End added */
-
-			storage_partition: partition@dc000 {
-				label = "storage";
-				reg = <0x000dc000 DT_SIZE_M(7)>;
-			};
-		};
-	};
-};
-
 # Building the Project
 ## Building with Non-Secure Communication
 

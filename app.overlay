@@ -1,1 +1,27 @@
- 
+&quadspi {
+	mx25r6435f: qspi-nor-flash@90000000 {
+
+		partitions {
+    
+            cert0_partition: partition@d4000 {
+                label = "cert-0";
+                reg = <0x000d4000 0x00001000>;  /* DT_SIZE_K(4) */
+            };
+
+            cert1_partition: partition@d6000 {
+                label = "cert-1";
+                reg = <0x000d6000 0x00001000>;  /* DT_SIZE_K(4) */
+            };
+
+            ssid_partition: partition@d8000 {
+                label = "ssid";
+                reg = <0x000d8000 0x00001000>;  /* DT_SIZE_K(4) */
+            };
+
+            pswd_partition: partition@da000 {
+                label = "pswd";
+                reg = <0x000da000 0x00001000>;  /* DT_SIZE_K(4) */
+            };
+        };
+    };
+};
