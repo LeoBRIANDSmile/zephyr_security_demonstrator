@@ -1,13 +1,18 @@
 #ifndef __COMMON_H__
 #define __COMMON_H__
 
+#include <zephyr/kernel.h>
+
 #define MAX_SIZE_BUFFER         2048
 #define CERT_SIZE               779
 #define FLASH_SECTOR_SIZE		4096
 #define SLOT1_PARTITION_SIZE	FIXED_PARTITION_SIZE(slot1_partition)
+#define LED0_NODE DT_ALIAS(led0)
 
 // Global variables
 static char dataToRecv[MAX_SIZE_BUFFER];
+
+extern const k_tid_t blink_led_id;
 
 extern int state_wifi;
 

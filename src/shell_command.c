@@ -261,6 +261,7 @@ static int download_firmware(const struct shell *sh,
                             size_t argc, char **argv)
 {
     static int ret;
+
     ret = Socket_Init();
 
     if(!ret){
@@ -268,8 +269,15 @@ static int download_firmware(const struct shell *sh,
         Socket_Close();
         return 0;
     }
+    
+    k_thread_resume(blink_led_id);
 
-    Socket_Receive_firmware_to_flash();
+    ret = Socket_Receive_firmware_to_flash();
+
+    if (!ret) {
+        k_thread_suspend(blink_led_id);
+        return 0;
+    }
     
     Socket_Close();
 
@@ -294,7 +302,6 @@ static int rollback_firmware(const struct shell *sh,
                             size_t argc, char **argv)
 {
     int ret;
-
     ret = boot_request_upgrade(BOOT_UPGRADE_TEST);
     if (ret) {
         shell_print(sh,"Failed to request rollback (error %d)\r\n", ret);
