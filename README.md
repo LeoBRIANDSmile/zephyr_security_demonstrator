@@ -1,4 +1,4 @@
-# HTTPs Get shell
+# About the project
 This project shows how to create a secure IoT object : from the wifi connection until the addition of shell command to automate the task.
 
 
